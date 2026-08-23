@@ -36,7 +36,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Verify required Firebase plist
@@ -67,10 +67,19 @@ jobs:
       - name: Run patient tests
         run: flutter test
 
+      - name: Clean CocoaPods state
+        run: |
+          rm -rf ios/Pods
+          rm -f ios/Podfile.lock
+          rm -rf ios/.symlinks
+          rm -rf .dart_tool
+          flutter pub get
+
       - name: Install CocoaPods dependencies
         run: |
           cd ios
-          pod install --repo-update
+          pod repo update
+          pod install --verbose
 
       - name: Build unsigned iOS app
         run: flutter build ios --release --no-codesign
