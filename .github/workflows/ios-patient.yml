@@ -1,0 +1,92 @@
+name: Patient iOS CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    paths:
+      - "apps/patient_app/**"
+      - "packages/weh_shared/**"
+      - ".github/workflows/ios-patient.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: patient-ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: Analyze, test, and build patient iOS app
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: apps/patient_app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Verify required Firebase plist
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE="ios/Runner/GoogleService-Info.plist"
+
+          if [ ! -s "$FILE" ]; then
+            echo "::error::$FILE is missing or empty"
+            exit 1
+          fi
+
+          if ! grep -q '<plist' "$FILE"; then
+            echo "::error::$FILE is not a valid plist"
+            exit 1
+          fi
+
+          echo "Firebase iOS plist exists and is non-empty."
+          echo "Its contents will not be printed."
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze patient app
+        run: flutter analyze
+
+      - name: Run patient tests
+        run: flutter test
+
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios
+          pod install --repo-update
+
+      - name: Build unsigned iOS app
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned iOS artifact
+        run: |
+          set -euo pipefail
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -R Runner.app Payload/Runner.app
+          zip -r patient-ios-unsigned.ipa Payload
+
+      - name: Upload unsigned iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patient-ios-unsigned
+          path: apps/patient_app/build/ios/iphoneos/patient-ios-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
