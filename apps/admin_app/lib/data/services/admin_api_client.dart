@@ -102,12 +102,54 @@ class AdminApiClient {
     }
   }
 
+  Future<void> saveDoctor(String id, Map<String, dynamic> data, {bool isUpdate = false}) async {
+    try {
+      if (isUpdate) {
+        await dio.patch('/doctors/$id/', data: data);
+      } else {
+        data['id'] = id;
+        await dio.post('/doctors/', data: data);
+      }
+    } on DioException catch (e) {
+      developer.log('Failed to save doctor: ${e.message}', name: 'AdminApiClient');
+      throw Exception(e.response?.data ?? 'Error saving doctor');
+    }
+  }
+
   // -- Services APIs --
   Future<List<dynamic>> getServices() async {
     try {
       final response = await dio.get('/services/');
       return response.data;
     } on DioException catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveService(String id, Map<String, dynamic> data, {bool isUpdate = false}) async {
+    try {
+      if (isUpdate) {
+        await dio.patch('/services/$id/', data: data);
+      } else {
+        data['id'] = id;
+        await dio.post('/services/', data: data);
+      }
+    } on DioException catch (e) {
+      developer.log('Failed to save service: ${e.message}', name: 'AdminApiClient');
+      throw Exception(e.response?.data ?? 'Error saving service');
+    }
+  }
+
+  // -- Patients APIs --
+  Future<List<dynamic>> getPatients() async {
+    try {
+      final response = await dio.get('/auth/profiles/');
+      if (response.data is Map && response.data.containsKey('results')) {
+        return response.data['results'];
+      }
+      return response.data;
+    } on DioException catch (e) {
+      developer.log('Failed to fetch patients: ${e.message}', name: 'AdminApiClient');
       return [];
     }
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../state/admin_provider.dart';
+import 'doctor_form_screen.dart';
+import 'service_form_screen.dart';
 
 class ManagementTabs extends StatelessWidget {
   const ManagementTabs({super.key});
@@ -62,6 +64,19 @@ class _DoctorsTabState extends State<_DoctorsTab> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorFormScreen()));
+          if (result == true) _loadDoctors();
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     if (_doctors.isEmpty) return const Center(child: Text('No doctors found.'));
 
@@ -74,8 +89,9 @@ class _DoctorsTabState extends State<_DoctorsTab> {
           subtitle: Text(doc['specialization'] ?? ''),
           trailing: IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // Navigate to Edit screen (TODO)
+            onPressed: () async {
+              final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorFormScreen(doctor: doc)));
+              if (result == true) _loadDoctors();
             },
           ),
         );
@@ -114,6 +130,19 @@ class _ServicesTabState extends State<_ServicesTab> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const ServiceFormScreen()));
+          if (result == true) _loadServices();
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     if (_services.isEmpty) return const Center(child: Text('No services found.'));
 
@@ -126,8 +155,9 @@ class _ServicesTabState extends State<_ServicesTab> {
           subtitle: Text('Fee: ₹${serv['base_fee']}'),
           trailing: IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // Navigate to Edit screen (TODO)
+            onPressed: () async {
+              final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceFormScreen(service: serv)));
+              if (result == true) _loadServices();
             },
           ),
         );
@@ -136,11 +166,40 @@ class _ServicesTabState extends State<_ServicesTab> {
   }
 }
 
-class _PatientsTab extends StatelessWidget {
+class _PatientsTab extends StatefulWidget {
   const _PatientsTab();
 
   @override
+  State<_PatientsTab> createState() => _PatientsTabState();
+}
+
+class _PatientsTabState extends State<_PatientsTab> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AdminProvider>().fetchPatients();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Patient search and history goes here'));
+    final provider = context.watch<AdminProvider>();
+    final patients = provider.patients;
+    
+    if (provider.isLoading) return const Center(child: CircularProgressIndicator());
+    if (patients.isEmpty) return const Center(child: Text('No patients found.'));
+
+    return ListView.builder(
+      itemCount: patients.length,
+      itemBuilder: (context, index) {
+        final p = patients[index];
+        return ListTile(
+          leading: const CircleAvatar(child: Icon(Icons.person)),
+          title: Text(p['full_name'] ?? 'Unknown'),
+          subtitle: Text('Mobile: ${p['mobile_number']} | Age: ${p['age'] ?? 'N/A'}'),
+        );
+      },
+    );
   }
 }

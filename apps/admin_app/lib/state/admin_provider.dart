@@ -15,6 +15,9 @@ class AdminProvider extends ChangeNotifier {
   List<dynamic> _todayAppointments = [];
   List<dynamic> get todayAppointments => _todayAppointments;
 
+  List<dynamic> _patients = [];
+  List<dynamic> get patients => _patients;
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
@@ -72,6 +75,35 @@ class AdminProvider extends ChangeNotifier {
       return result;
     } catch (e) {
       return {'error': e.toString(), 'verified': false};
+    }
+  }
+
+  Future<void> fetchPatients() async {
+    _setLoading(true);
+    try {
+      _patients = await adminApiClient.getPatients();
+    } catch (e) {
+      _setError('Failed to fetch patients: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> saveDoctor(String id, Map<String, dynamic> data, {bool isUpdate = false}) async {
+    _setLoading(true);
+    try {
+      await adminApiClient.saveDoctor(id, data, isUpdate: isUpdate);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> saveService(String id, Map<String, dynamic> data, {bool isUpdate = false}) async {
+    _setLoading(true);
+    try {
+      await adminApiClient.saveService(id, data, isUpdate: isUpdate);
+    } finally {
+      _setLoading(false);
     }
   }
 }
