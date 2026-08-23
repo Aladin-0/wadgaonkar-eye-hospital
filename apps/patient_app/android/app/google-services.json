@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1003169726058",
+    "project_id": "wadgaonkar-eye-hospital",
+    "storage_bucket": "wadgaonkar-eye-hospital.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1003169726058:android:6cc69b670201dee17a1413",
+        "android_client_info": {
+          "package_name": "com.wadgaonkareyehospital.wadgaonkar_eye_hospital"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1003169726058-t03f04ravevh0e40fkvldr5fa4vljkok.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wadgaonkareyehospital.wadgaonkar_eye_hospital",
+            "certificate_hash": "f3eb16acad89a59c925d78cf21ac1b284ef8b76a"
+          }
+        },
+        {
+          "client_id": "1003169726058-d5ich4uf8omjg0stm6ne74qj7b9atpkb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDg3qTg26iJR71D4Slkxfg-3UItRcY-Kw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1003169726058-d5ich4uf8omjg0stm6ne74qj7b9atpkb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
