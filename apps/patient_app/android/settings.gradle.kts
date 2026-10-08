@@ -24,4 +24,15 @@ plugins {
     id("com.google.gms.google-services") version "4.5.0" apply false
 }
 
+// Add PhonePe's Maven repository so IntentSDK can be resolved
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        // PhonePe SDK requires its own Maven repository
+        maven { url = uri("https://phonepe.mycloudrepo.io/public/repositories/phonepe-intentsdk-android") }
+    }
+}
+
 include(":app")
+

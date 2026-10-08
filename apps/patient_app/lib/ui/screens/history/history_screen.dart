@@ -10,7 +10,7 @@ import '../booking/appointment_receipt_screen.dart';
 
 /// Appointment History & Case Records screen with dynamic tabs and pass view
 class HistoryScreen extends StatefulWidget {
-  final VoidCallback onBookAppointmentPressed;
+  final void Function([Appointment?]) onBookAppointmentPressed;
 
   const HistoryScreen({super.key, required this.onBookAppointmentPressed});
 
@@ -18,12 +18,13 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
+class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
@@ -35,8 +36,19 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.user?.uid != null) {
+        context.read<BookingProvider>().loadPatientAppointments(authProvider.user!.uid);
+      }
+    }
   }
 
   void _showCancelDialog(Appointment appt) {
@@ -100,15 +112,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
   }
 
   void _showRescheduleDialog(Appointment appt) {
-    // Navigate to booking flow with reschedule context
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Rescheduling: Select a new slot from the booking screen.'),
-        duration: Duration(seconds: 3),
-      ),
-    );
-    // In a full implementation, navigate to the slot picker passing appt.id
-    widget.onBookAppointmentPressed();
+    widget.onBookAppointmentPressed(appt);
   }
 
   @override
@@ -197,8 +201,16 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    return RefreshIndicator(
+      onRefresh: () async {
+        final auth = context.read<AuthProvider>();
+        if (auth.user?.uid != null) {
+          await context.read<BookingProvider>().loadPatientAppointments(auth.user!.uid);
+        }
+      },
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: appointments.length,
       itemBuilder: (context, index) {
         final appt = appointments[index];
@@ -207,6 +219,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
           child: _buildAppointmentCard(appt, isUpcoming),
         );
       },
+      ),
     );
   }
 
@@ -391,11 +404,6 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                   tooltip: 'Reschedule Appointment',
                   onPressed: () => _showRescheduleDialog(appt),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.cancel_outlined, color: AppColors.error, size: 20),
-                  tooltip: 'Cancel Appointment',
-                  onPressed: () => _showCancelDialog(appt),
-                ),
               ],
             ],
           ),
@@ -523,7 +531,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
             CustomButton.primary(
               text: 'Book New OPD Appointment',
               icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white, size: 18),
-              onPressed: widget.onBookAppointmentPressed,
+              onPressed: () => widget.onBookAppointmentPressed(),
             ),
           ],
         ],

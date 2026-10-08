@@ -5,10 +5,10 @@ class AppColors {
   AppColors._();
 
   // Primary Medical Brand Colors
-  static const Color primary = Color(0xFF0A6847); // Rich Deep Medical Emerald
-  static const Color primaryLight = Color(0xFF139669); // Bright Medical Green
-  static const Color primaryDark = Color(0xFF06442E); // Deep Forest Hospital Teal
-  static const Color primaryAccent = Color(0xFF0E8388); // Cyan Ophthalmology Teal
+  static const Color primary = Color(0xFF2563EB); // Modern Royal Blue
+  static const Color primaryLight = Color(0xFF3B82F6); // Bright Blue
+  static const Color primaryDark = Color(0xFF1D4ED8); // Deep Trust Blue
+  static const Color primaryAccent = Color(0xFF0EA5E9); // Ocean Cyan Accent
 
   // Secondary & Supporting Accents
   static const Color secondary = Color(0xFF0F2C59); // Trust Navy Blue
@@ -41,18 +41,18 @@ class AppColors {
 
   // Borders & Dividers
   static const Color border = Color(0xFFE5E7EB);
-  static const Color borderFocus = Color(0xFF0A6847);
+  static const Color borderFocus = Color(0xFF2563EB);
   static const Color divider = Color(0xFFF3F4F6);
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF0A6847), Color(0xFF0E8388)],
+    colors: [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient heroCardGradient = LinearGradient(
-    colors: [Color(0xFF06442E), Color(0xFF0A6847), Color(0xFF0E8388)],
+    colors: [Color(0xFF1E3A8A), Color(0xFF2563EB), Color(0xFF0EA5E9)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

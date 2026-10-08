@@ -6,11 +6,11 @@ class AppStrings {
   static const String appName = 'Wadgaonkar Eye Hospital';
   static const String appTagline = 'Advanced Eye Care & Laser Centre';
   static const String hospitalSubtitle = 'Trusted Ophthalmology Care Since 1992';
-  static const String hospitalAddress = 'Station Road, Near Central Plaza, Ahmednagar, Maharashtra - 414001';
-  static const String hospitalPhone = '+91 98220 12345';
-  static const String emergencyPhone = '+91 98220 99999';
-  static const String hospitalEmail = 'care@wadgaonkareyehospital.com';
-  static const String opdTimings = 'Mon - Sat: 9:00 AM - 7:30 PM | Sun: Emergency Only';
+  static const String hospitalAddress = '126, Madhushri, Varad Ganesh Mandir Rd, Samarth Nagar, Chhatrapati Sambhajinagar, Maharashtra 431001';
+  static const String hospitalPhone = '02402324219';
+  static const String emergencyPhone = '02402324219';
+  static const String hospitalEmail = 'wadgaonkareyeehospital@gmail.com';
+  static const String opdTimings = '10:00 AM - 1:00 PM & 6:30 PM - 8:30 PM (4th Sat Evening Off)';
 
   // Auth Strings
   static const String welcomeTitle = 'Welcome to\nWadgaonkar Eye Hospital';

@@ -1,19 +1,17 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
-  final _storage = const FlutterSecureStorage();
-
-  static const String _keyAdminToken = 'weh_admin_jwt_token';
+  String? _adminToken;
 
   Future<void> saveAdminToken(String token) async {
-    await _storage.write(key: _keyAdminToken, value: token);
+    _adminToken = token;
   }
 
   Future<String?> getAdminToken() async {
-    return await _storage.read(key: _keyAdminToken);
+    return _adminToken;
   }
 
   Future<void> clearAdminToken() async {
-    await _storage.delete(key: _keyAdminToken);
+    _adminToken = null;
   }
 }

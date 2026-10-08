@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import '../../firebase_options.dart';
+import 'package:wadgaonkar_eye_hospital/firebase_options.dart';
 
-/// Handles push notifications for late-arrival reminders and doctor unavailability alerts.
+/// Handles push notifications in background/terminated state.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
@@ -13,18 +14,24 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   developer.log('Background FCM message received: ${message.messageId}', name: 'FirebaseService');
 }
 
-/// Initializes and checks Firebase connection status safely
+/// Initializes Firebase and manages push notification routing.
 class FirebaseService {
   static bool _isInitialized = false;
-
   static bool get isInitialized => _isInitialized;
 
-  /// Safe initialization that catches missing configuration files gracefully
+  /// Set to true when notification is tapped — MainShellScreen reads this on init to refresh
+  static bool pendingCancellationRefresh = false;
+
+  /// Broadcast stream: emits `true` whenever a cancellation notification
+  /// is received while the app is OPEN (foreground or background resumed).
+  static final StreamController<bool> onCancellationNotification =
+      StreamController<bool>.broadcast();
+
+  /// Safe initialization.
   static Future<void> initialize() async {
     try {
       if (kIsWeb) {
         _isInitialized = false;
-        developer.log('Firebase on Web pending configuration', name: 'FirebaseService');
         return;
       }
 
@@ -34,20 +41,13 @@ class FirebaseService {
       _isInitialized = true;
       developer.log('Firebase initialized successfully', name: 'FirebaseService');
 
-      // Setup FCM handlers after Firebase is confirmed initialized
       await _setupMessaging();
     } catch (e, stack) {
       _isInitialized = false;
       if (kReleaseMode) {
-        // In release mode, Firebase config MUST exist and be valid
         throw Exception('CRITICAL: Firebase initialization failed in release mode: $e');
       } else {
-        developer.log(
-          'Firebase not initialized: $e',
-          name: 'FirebaseService',
-          error: e,
-          stackTrace: stack,
-        );
+        developer.log('Firebase not initialized: $e', name: 'FirebaseService', error: e, stackTrace: stack);
       }
     }
   }
@@ -56,33 +56,32 @@ class FirebaseService {
     try {
       final messaging = FirebaseMessaging.instance;
 
-      // Request permission (iOS, macOS)
-      await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      // Register background handler
+      await messaging.requestPermission(alert: true, badge: true, sound: true);
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      // Handle foreground messages
+      // App FOREGROUND — notification arrives while user is using app
+      // Refresh immediately so banner appears without user doing anything
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        developer.log(
-          'Foreground FCM: ${message.notification?.title} - ${message.notification?.body}',
-          name: 'FirebaseService',
-        );
-        // TODO: Show in-app banner or dialog
+        developer.log('Foreground FCM: ${message.notification?.title}', name: 'FirebaseService');
+        onCancellationNotification.add(true);
       });
 
-      // Handle notification tap when app is in background/terminated
+      // App BACKGROUND — notification arrives, user taps it → app resumes
+      // Set flag, MainShellScreen will read it on its next build
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        developer.log(
-          'App opened from FCM: ${message.data}',
-          name: 'FirebaseService',
-        );
-        // TODO: Navigate to the relevant appointment screen
+        developer.log('Notification tapped (background) — setting pending refresh', name: 'FirebaseService');
+        pendingCancellationRefresh = true;
+        // Also try stream for fast path if shell is already mounted
+        onCancellationNotification.add(true);
       });
+
+      // App KILLED — user taps notification → app launches fresh
+      // SplashScreen → MainShellScreen, which reads pendingCancellationRefresh
+      final initialMessage = await messaging.getInitialMessage();
+      if (initialMessage != null) {
+        developer.log('App launched from notification tap — setting pending refresh', name: 'FirebaseService');
+        pendingCancellationRefresh = true;
+      }
 
       final token = await messaging.getToken();
       developer.log('FCM token: $token', name: 'FirebaseService');
@@ -91,7 +90,7 @@ class FirebaseService {
     }
   }
 
-  /// Get the current FCM device token for registering with backend
+  /// Get the current FCM device token
   static Future<String?> getFcmToken() async {
     if (!_isInitialized) return null;
     try {

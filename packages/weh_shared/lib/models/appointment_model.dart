@@ -11,7 +11,8 @@ enum BookingStatus {
   cancelled,
   noShow,
   expired,
-  rescheduled;
+  rescheduled,
+  needsReschedule;
 
   String get displayName {
     switch (this) {
@@ -33,6 +34,8 @@ enum BookingStatus {
         return 'Expired';
       case BookingStatus.rescheduled:
         return 'Rescheduled';
+      case BookingStatus.needsReschedule:
+        return 'Needs Reschedule';
     }
   }
 
@@ -71,6 +74,9 @@ enum BookingStatus {
         return BookingStatus.expired;
       case 'rescheduled':
         return BookingStatus.rescheduled;
+      case 'needsreschedule':
+      case 'needs_reschedule':
+        return BookingStatus.needsReschedule;
       default:
         return BookingStatus.confirmed;
     }
@@ -149,7 +155,9 @@ class Appointment {
   final DateTime? gracePeriodStartedAt;
   final DateTime? expiresAt;
   final DateTime? checkedInAt;
-  final bool requiresRescheduling;
+  
+  bool get requiresRescheduling => bookingStatus == BookingStatus.needsReschedule;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -182,7 +190,6 @@ class Appointment {
     this.gracePeriodStartedAt,
     this.expiresAt,
     this.checkedInAt,
-    this.requiresRescheduling = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -429,7 +436,6 @@ class Appointment {
       gracePeriodStartedAt: _parseDateOptional(map['gracePeriodStartedAt'] ?? map['grace_period_started_at']),
       expiresAt: _parseDateOptional(map['expiresAt'] ?? map['expires_at']),
       checkedInAt: _parseDateOptional(map['checkedInAt'] ?? map['checked_in_at']),
-      requiresRescheduling: (map['requiresRescheduling'] ?? map['requires_rescheduling'] ?? false) as bool,
       createdAt: _parseDate(map['createdAt'] ?? map['created_at']),
       updatedAt: _parseDate(map['updatedAt'] ?? map['updated_at']),
     );
@@ -468,7 +474,6 @@ class Appointment {
     DateTime? gracePeriodStartedAt,
     DateTime? expiresAt,
     DateTime? checkedInAt,
-    bool? requiresRescheduling,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -501,7 +506,6 @@ class Appointment {
       gracePeriodStartedAt: gracePeriodStartedAt ?? this.gracePeriodStartedAt,
       expiresAt: expiresAt ?? this.expiresAt,
       checkedInAt: checkedInAt ?? this.checkedInAt,
-      requiresRescheduling: requiresRescheduling ?? this.requiresRescheduling,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -524,7 +528,7 @@ class Appointment {
   static DateTime _parseDate(dynamic val) {
     if (val is DateTime) return val;
     if (val is String) {
-      return DateTime.tryParse(val) ?? DateTime.now();
+      return DateTime.tryParse(val)?.toLocal() ?? DateTime.now();
     }
     return DateTime.now();
   }
@@ -532,7 +536,7 @@ class Appointment {
   static DateTime? _parseDateOptional(dynamic val) {
     if (val == null) return null;
     if (val is DateTime) return val;
-    if (val is String) return DateTime.tryParse(val);
+    if (val is String) return DateTime.tryParse(val)?.toLocal();
     return null;
   }
 

@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Doctor data model with clinical qualifications, OPD schedule, and consultation fees.
 /// Supports both Firestore and Django REST Framework JSON serialization.
 class Doctor {
@@ -134,6 +136,22 @@ class Doctor {
     }
     return const [];
   }
+
+  String _formatTime12h(String time24) {
+    if (time24.isEmpty) return '';
+    try {
+      final parts = time24.split(':');
+      final dt = DateTime(2000, 1, 1, int.parse(parts[0]), int.parse(parts[1]));
+      return DateFormat('hh:mm a').format(dt);
+    } catch (_) {
+      return time24;
+    }
+  }
+
+  String get formattedShiftStartTime => _formatTime12h(shiftStartTime);
+  String get formattedShiftEndTime => _formatTime12h(shiftEndTime);
+  String get formattedBreakStartTime => breakStartTime != null ? _formatTime12h(breakStartTime!) : '';
+  String get formattedBreakEndTime => breakEndTime != null ? _formatTime12h(breakEndTime!) : '';
 
   @override
   String toString() => 'Doctor($name, $specialization, Fee: ₹$consultationFee)';

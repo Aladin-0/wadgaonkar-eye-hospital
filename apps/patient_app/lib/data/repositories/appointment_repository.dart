@@ -21,6 +21,11 @@ abstract class IAppointmentRepository {
     required String doctorId,
     required DateTime date,
   });
+  Future<List<TimeSlot>> getSlots({
+    required String doctorId,
+    required DateTime date,
+    String? serviceId,
+  });
   Future<Appointment> cancelAppointment({
     required String appointmentId,
     required String reason,
@@ -51,14 +56,16 @@ class AppointmentRepository implements IAppointmentRepository {
         'patient_uid': appointment.patientUid,
         'patient_name': appointment.patientName,
         'patient_mobile': appointment.patientMobile,
+        'patient_age': appointment.patientAge,
+        'patient_gender': appointment.patientGender,
         'patient_id': appointment.patientId,
         'doctor_id': appointment.doctorId,
         'doctor_name': appointment.doctorName,
         'service_id': appointment.serviceId,
         'service_title': appointment.serviceTitle,
         'appointment_date': appointment.appointmentDate.toIso8601String(),
-        'slot_start_time': appointment.slotStartTime.toIso8601String(),
-        'slot_end_time': appointment.slotEndTime.toIso8601String(),
+        'slot_start_time': appointment.slotStartTime.toUtc().toIso8601String(),
+        'slot_end_time': appointment.slotEndTime.toUtc().toIso8601String(),
         'consultation_fee': appointment.consultationFee,
         'booking_status': appointment.bookingStatus.name,
         'payment_status': appointment.paymentStatus.name,
@@ -182,7 +189,7 @@ class AppointmentRepository implements IAppointmentRepository {
     required String doctorId,
     required DateTime date,
   }) async {
-    // Currently used for slot generation locally.
+    // Currently used for local fallbacks if needed.
     final localList = storageService.getAppointments().where((a) {
       return a.doctorId == doctorId &&
           a.appointmentDate.year == date.year &&
@@ -191,6 +198,22 @@ class AppointmentRepository implements IAppointmentRepository {
           a.bookingStatus != BookingStatus.cancelled;
     }).toList();
     return localList;
+  }
+
+  @override
+  Future<List<TimeSlot>> getSlots({
+    required String doctorId,
+    required DateTime date,
+    String? serviceId,
+  }) async {
+    try {
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      final responseList = await apiClient.getSlots(doctorId, dateStr, serviceId: serviceId);
+      return responseList.map((json) => TimeSlot.fromMap(json)).toList();
+    } catch (e) {
+      developer.log('Error fetching slots from API: $e', name: 'AppointmentRepository');
+      return [];
+    }
   }
 
   @override
@@ -266,15 +289,14 @@ class AppointmentRepository implements IAppointmentRepository {
     };
 
     try {
+      // Use the dedicated reschedule endpoint which properly resets booking_status to 'confirmed'
       final requestData = {
-        'appointment_date': DateTime(newDate.year, newDate.month, newDate.day).toIso8601String(),
-        'slot_start_time': newSlotStartTime.toIso8601String(),
-        'slot_end_time': newSlotEndTime.toIso8601String(),
-        'qr_payload': jsonEncode(updatedQrMap),
-        'qr_signature': sig,
+        'new_appointment_date': DateFormat('yyyy-MM-dd').format(newDate),
+        'new_slot_start_time': newSlotStartTime.toUtc().toIso8601String(),
+        'new_slot_end_time': newSlotEndTime.toUtc().toIso8601String(),
       };
       
-      final response = await apiClient.updateAppointmentStatus(appointmentId, requestData);
+      final response = await apiClient.rescheduleAppointment(appointmentId, requestData);
       final rescheduled = Appointment.fromMap(response);
       
       await storageService.saveAppointment(rescheduled);

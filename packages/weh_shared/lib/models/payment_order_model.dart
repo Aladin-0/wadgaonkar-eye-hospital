@@ -1,13 +1,14 @@
-/// Payment order entity representing an initialized gateway checkout order (e.g. Razorpay).
+/// Payment order entity representing an initialized PhonePe gateway checkout order.
 /// Supports Firestore and Django REST Framework snake_case serialization.
 class PaymentOrder {
   final String orderId;
   final String appointmentId;
   final double amount;
   final String currency; // "INR"
-  final String gatewayName; // "Razorpay"
-  final String? gatewayOrderId;
-  final String status; // "created", "paid", "failed"
+  final String gatewayName; // "PhonePe"
+  final String? merchantTransactionId; // unique ID we generate and send TO PhonePe
+  final String? gatewayOrderId;        // PhonePe's own transactionId returned in callback
+  final String status; // "created", "paid", "failed", "pending"
   final String patientName;
   final String patientMobile;
   final String patientEmail;
@@ -19,7 +20,8 @@ class PaymentOrder {
     required this.appointmentId,
     required this.amount,
     this.currency = 'INR',
-    this.gatewayName = 'Razorpay',
+    this.gatewayName = 'PhonePe',
+    this.merchantTransactionId,
     this.gatewayOrderId,
     this.status = 'created',
     required this.patientName,
@@ -36,6 +38,7 @@ class PaymentOrder {
       'amount': amount,
       'currency': currency,
       'gatewayName': gatewayName,
+      'merchantTransactionId': merchantTransactionId,
       'gatewayOrderId': gatewayOrderId,
       'status': status,
       'patientName': patientName,
@@ -53,6 +56,7 @@ class PaymentOrder {
       'amount': amount,
       'currency': currency,
       'gateway_name': gatewayName,
+      'merchant_transaction_id': merchantTransactionId,
       'gateway_order_id': gatewayOrderId,
       'status': status,
       'patient_name': patientName,
@@ -71,7 +75,8 @@ class PaymentOrder {
           ? (map['amount'] as num).toDouble()
           : (double.tryParse(map['amount']?.toString() ?? '0.0') ?? 0.0),
       currency: (map['currency'] ?? 'INR') as String,
-      gatewayName: (map['gatewayName'] ?? map['gateway_name'] ?? 'Razorpay') as String,
+      gatewayName: (map['gatewayName'] ?? map['gateway_name'] ?? 'PhonePe') as String,
+      merchantTransactionId: (map['merchantTransactionId'] ?? map['merchant_transaction_id']) as String?,
       gatewayOrderId: (map['gatewayOrderId'] ?? map['gateway_order_id']) as String?,
       status: (map['status'] ?? 'created') as String,
       patientName: (map['patientName'] ?? map['patient_name'] ?? '') as String,
@@ -89,7 +94,7 @@ class PaymentOrder {
   Map<String, dynamic> toJson() => toDjangoJson();
 }
 
-/// Result returned from payment signature verification
+/// Result returned from PhonePe payment launch and verification
 class PaymentVerificationResult {
   final bool isSuccess;
   final String? transactionId;

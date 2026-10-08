@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:weh_shared/weh_shared.dart';
+// Note: Intentionally NOT importing weh_shared theme to isolate the Admin App design
 
 import 'data/services/admin_api_client.dart';
 import 'data/services/secure_storage_service.dart';
 import 'state/admin_provider.dart';
+import 'theme/admin_theme.dart';
 import 'ui/screens/admin_login_screen.dart';
 import 'ui/screens/admin_shell.dart';
 
@@ -37,7 +38,7 @@ class WEHAdminApp extends StatelessWidget {
     return MaterialApp(
       title: 'WEH Admin Portal',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AdminTheme.lightTheme,
       home: isLoggedIn ? const AdminShell() : const AdminLoginScreen(),
     );
   }

@@ -4,11 +4,11 @@ from django.utils import timezone
 class Doctor(models.Model):
     id = models.CharField(max_length=64, primary_key=True, help_text="Unique doctor identifier e.g. doc_anand")
     name = models.CharField(max_length=255)
-    qualification = models.CharField(max_length=255, default='MBBS, MS Ophthalmology')
+    qualification = models.CharField(max_length=255, default='', blank=True)
     specialization = models.CharField(max_length=255)
     experience_years = models.PositiveIntegerField(default=0)
     profile_image_url = models.URLField(blank=True, null=True)
-    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=600.00)
+    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     slot_duration_minutes = models.PositiveIntegerField(default=20)
     working_days = models.JSONField(default=list, help_text="List of day integers 1=Monday .. 7=Sunday")
     shift_start_time = models.CharField(max_length=8, default='09:00', help_text="HH:MM format")

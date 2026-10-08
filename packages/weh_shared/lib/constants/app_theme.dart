@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
@@ -8,9 +9,9 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    // Disable runtime font fetching — prevents crashes when network is unavailable
-    // (e.g. Linux desktop preview, sandboxed CI). Fonts fall back to system defaults.
-    GoogleFonts.config.allowRuntimeFetching = false;
+    // Explicitly enable runtime fetching to fix font crashes on mobile
+    GoogleFonts.config.allowRuntimeFetching = true;
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,

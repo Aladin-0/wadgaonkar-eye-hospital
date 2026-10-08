@@ -11,28 +11,54 @@ import '../profile/profile_setup_screen.dart';
 import '../shell/main_shell_screen.dart';
 
 /// Hospital-branded Google Sign-In login screen
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  // Guard flag: prevents double-tap during OS Google account picker
+  bool _isSigningIn = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    // Prevent re-entrant calls (double-tap bug fix)
+    if (_isSigningIn) return;
+    setState(() => _isSigningIn = true);
+
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signInWithGoogle();
 
-    if (!context.mounted) return;
+    // Always reset the flag so button works again if cancelled
+    if (!mounted) return;
+    setState(() => _isSigningIn = false);
+
+    if (!mounted) return;
 
     if (success && authProvider.user != null) {
       final profileProvider = context.read<ProfileProvider>();
       await profileProvider.loadProfile(authProvider.user!);
 
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       if (profileProvider.hasCompleteProfile) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainShellScreen()),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const MainShellScreen(),
+            transitionDuration: const Duration(milliseconds: 300),
+            transitionsBuilder: (_, anim, __, child) =>
+                FadeTransition(opacity: anim, child: child),
+          ),
         );
       } else {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const ProfileSetupScreen(),
+            transitionDuration: const Duration(milliseconds: 300),
+            transitionsBuilder: (_, anim, __, child) =>
+                FadeTransition(opacity: anim, child: child),
+          ),
         );
       }
     } else {
@@ -49,6 +75,8 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    // Show loading if either the authProvider is loading OR our local sign-in guard is active
+    final isLoading = authProvider.isAuthenticating || _isSigningIn;
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -181,10 +209,10 @@ class LoginScreen extends StatelessWidget {
                       ),
                       child: CustomButton.google(
                         text: AppStrings.signInWithGoogle,
-                        isLoading: authProvider.isAuthenticating,
-                        onPressed: authProvider.isAuthenticating
+                        isLoading: isLoading,
+                        onPressed: isLoading
                             ? null
-                            : () => _handleGoogleSignIn(context),
+                            : _handleGoogleSignIn,
                       ),
                     ),
                     const SizedBox(height: 16),

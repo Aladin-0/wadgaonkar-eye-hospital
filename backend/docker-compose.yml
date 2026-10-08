@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
+    restart: always
     environment:
       POSTGRES_DB: ${DB_NAME:-weh_db}
       POSTGRES_USER: ${DB_USER:-postgres}
@@ -17,6 +18,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -25,6 +27,7 @@ services:
 
   web:
     build: .
+    restart: always
     command: gunicorn --bind 0.0.0.0:8000 wadgaonkar_backend.wsgi:application
     ports:
       - "8000:8000"
@@ -37,7 +40,9 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DJANGO_DEBUG=True
       - DJANGO_SECURE_SSL_REDIRECT=False
-      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,web
+      - DJANGO_ALLOWED_HOSTS=*
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
     depends_on:
       db:
         condition: service_healthy
@@ -51,6 +56,7 @@ services:
 
   celery_worker:
     build: .
+    restart: always
     command: celery -A wadgaonkar_backend worker --loglevel=info
     environment:
       - DB_HOST=db
@@ -59,6 +65,8 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
     depends_on:
       db:
         condition: service_healthy
@@ -67,6 +75,7 @@ services:
 
   celery_beat:
     build: .
+    restart: always
     command: celery -A wadgaonkar_backend beat --loglevel=info
     environment:
       - DB_HOST=db
@@ -75,6 +84,8 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
     depends_on:
       db:
         condition: service_healthy

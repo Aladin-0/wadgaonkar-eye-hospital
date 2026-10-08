@@ -5,6 +5,11 @@ import '../services/patient_api_client.dart';
 abstract class IServiceRepository {
   Future<List<HospitalService>> getServices();
   Future<HospitalService?> getServiceById(String id);
+  Future<Map<String, dynamic>?> calculateFee({
+    required String serviceId,
+    required String patientUid,
+    required String date,
+  });
 }
 
 class ServiceRepository implements IServiceRepository {
@@ -31,5 +36,18 @@ class ServiceRepository implements IServiceRepository {
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> calculateFee({
+    required String serviceId,
+    required String patientUid,
+    required String date,
+  }) async {
+    return await apiClient.calculateFee(
+      serviceId: serviceId,
+      patientUid: patientUid,
+      date: date,
+    );
   }
 }

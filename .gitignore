@@ -55,3 +55,4 @@ firebase-service-account*.json
 service-account*.json
 *.p8
 **/Flutter/ephemeral/
+backend/venv/

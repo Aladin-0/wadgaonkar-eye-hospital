@@ -18,3 +18,28 @@ class HospitalService(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.department})"
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            import uuid
+            self.id = f"srv_{uuid.uuid4().hex[:8]}"
+        super().save(*args, **kwargs)
+
+class FollowUpDiscountSetting(models.Model):
+    is_active = models.BooleanField(default=True, help_text="Turn the 30-day follow-up discount on or off.")
+    discount_percentage = models.PositiveIntegerField(default=30, help_text="Percentage discount to apply (e.g. 30 for 30%).")
+    validity_days = models.PositiveIntegerField(default=30, help_text="Number of days the discount is valid after the first visit.")
+    
+    class Meta:
+        verbose_name = 'Follow-Up Discount Setting'
+        verbose_name_plural = 'Follow-Up Discount Settings'
+
+    def __str__(self):
+        status = "Active" if self.is_active else "Inactive"
+        return f"{self.discount_percentage}% off within {self.validity_days} days ({status})"
+        
+    def save(self, *args, **kwargs):
+        if not self.pk and FollowUpDiscountSetting.objects.exists():
+            # Ensure only one instance exists (Singleton)
+            return
+        return super(FollowUpDiscountSetting, self).save(*args, **kwargs)

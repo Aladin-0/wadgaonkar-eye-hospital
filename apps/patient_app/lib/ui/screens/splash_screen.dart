@@ -27,7 +27,8 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      // Faster animation: 800ms instead of 1200ms
+      duration: const Duration(milliseconds: 800),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -35,42 +36,59 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeIn,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _scaleAnimation = Tween<double>(begin: 0.92, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
 
+    // Run animation and auth check simultaneously, not serially
     _controller.forward();
     _checkInitialAuth();
   }
 
   Future<void> _checkInitialAuth() async {
-    // Wait for minimum splash presentation
-    await Future.delayed(const Duration(milliseconds: 1400));
+    // Minimum brand display reduced from 1400ms → 600ms
+    await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
 
     final authProvider = context.read<AuthProvider>();
-    await authProvider.restoreSession();
+    final profileProvider = context.read<ProfileProvider>();
 
+    // Restore session first
+    await authProvider.restoreSession();
     if (!mounted) return;
 
     if (authProvider.isAuthenticated && authProvider.user != null) {
-      final profileProvider = context.read<ProfileProvider>();
+      // Load profile (already triggered simultaneously in many cases)
       await profileProvider.loadProfile(authProvider.user!);
-
       if (!mounted) return;
 
       if (profileProvider.hasCompleteProfile) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainShellScreen()),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const MainShellScreen(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transitionsBuilder: (_, anim, __, child) =>
+                FadeTransition(opacity: anim, child: child),
+          ),
         );
       } else {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const ProfileSetupScreen(),
+            transitionDuration: const Duration(milliseconds: 250),
+            transitionsBuilder: (_, anim, __, child) =>
+                FadeTransition(opacity: anim, child: child),
+          ),
         );
       }
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const LoginScreen(),
+          transitionDuration: const Duration(milliseconds: 250),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+        ),
       );
     }
   }

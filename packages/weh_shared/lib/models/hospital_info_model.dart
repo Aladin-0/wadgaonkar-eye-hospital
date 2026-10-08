@@ -54,19 +54,19 @@ class HospitalData {
   static const List<HospitalMilestone> milestones = [
     HospitalMilestone(
       title: 'Trusted Experience',
-      count: '32+',
+      count: '22+',
       subtitle: 'Years of Dedicated Care',
       icon: Icons.verified_user_rounded,
     ),
     HospitalMilestone(
       title: 'Successful Surgeries',
-      count: '40,000+',
+      count: '80,000+',
       subtitle: 'Cataract & Laser Procedures',
       icon: Icons.visibility_rounded,
     ),
     HospitalMilestone(
       title: 'Happy Patients',
-      count: '1,50,000+',
+      count: '6.5 Lakhs+',
       subtitle: 'OPD Patients Treated',
       icon: Icons.favorite_rounded,
     ),
@@ -112,11 +112,11 @@ class HospitalData {
       accentColor: Color(0xFF139669),
     ),
     EyeDepartment(
-      id: 'pediatric',
-      name: 'Pediatric Ophthalmology & Squint',
-      description: 'Gentle child eye examinations, lazy eye (amblyopia) therapy, and squint correction.',
-      icon: Icons.child_care_rounded,
-      tag: 'Child Care',
+      id: 'oculoplasty',
+      name: 'Oculoplasty & Aesthetics',
+      description: 'Cosmetic and reconstructive procedures of the eyelids, orbit, and tear ducts.',
+      icon: Icons.face_retouching_natural_rounded,
+      tag: 'Cosmetic Care',
       accentColor: Color(0xFF2563EB),
     ),
     EyeDepartment(

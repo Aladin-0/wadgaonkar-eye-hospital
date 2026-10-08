@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:weh_shared/weh_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../data/services/firebase_service.dart';
+import '../../../state/auth_provider.dart';
 import '../../../state/booking_provider.dart';
 import '../booking/booking_flow_screen.dart';
 import '../history/history_screen.dart';
@@ -18,9 +21,49 @@ class MainShellScreen extends StatefulWidget {
 
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
+  StreamSubscription<bool>? _notificationSub;
 
-  void _openBookingFlow() {
-    context.read<BookingProvider>().resetDraft();
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for FCM foreground messages → refresh + switch to Home tab
+    _notificationSub = FirebaseService.onCancellationNotification.stream.listen((_) {
+      if (!mounted) return;
+      setState(() => _currentIndex = 0);
+      _refreshAppointments();
+    });
+
+    // After first frame: check if we were launched/resumed via a notification tap
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (FirebaseService.pendingCancellationRefresh) {
+        FirebaseService.pendingCancellationRefresh = false; // consume the flag
+        setState(() => _currentIndex = 0); // Ensure Home tab is selected
+        _refreshAppointments();
+      }
+    });
+  }
+
+  void _refreshAppointments() {
+    final auth = context.read<AuthProvider>();
+    if (auth.user?.uid != null) {
+      context.read<BookingProvider>().loadPatientAppointments(auth.user!.uid);
+    }
+  }
+
+
+  @override
+  void dispose() {
+    _notificationSub?.cancel();
+    super.dispose();
+  }
+
+  void _openBookingFlow([Appointment? rescheduleAppt]) {
+    final provider = context.read<BookingProvider>();
+    provider.resetDraft();
+    if (rescheduleAppt != null) {
+      provider.setRescheduleAppointment(rescheduleAppt);
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const BookingFlowScreen(),
@@ -85,7 +128,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       ),
       floatingActionButton: _currentIndex != 1
           ? FloatingActionButton.extended(
-              onPressed: _openBookingFlow,
+              onPressed: () => _openBookingFlow(),
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               elevation: 4,

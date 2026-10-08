@@ -66,10 +66,10 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> checkIn(String? qrPayload, String? manualCode) async {
+  Future<Map<String, dynamic>> checkIn(String? qrPayload, String? manualCode, {bool preview = false}) async {
     try {
-      final result = await adminApiClient.checkIn(qrPayload, manualCode);
-      if (result['verified'] == true) {
+      final result = await adminApiClient.checkIn(qrPayload, manualCode, preview: preview);
+      if (result['verified'] == true && !preview) {
         await fetchDashboardData();
       }
       return result;
@@ -102,6 +102,41 @@ class AdminProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       await adminApiClient.saveService(id, data, isUpdate: isUpdate);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> deleteDoctor(String id) async {
+    _setLoading(true);
+    try {
+      await adminApiClient.deleteDoctor(id);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> deleteService(String id) async {
+    _setLoading(true);
+    try {
+      await adminApiClient.deleteService(id);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<List<dynamic>> getSlots(String doctorId, String dateStr) async {
+    return await adminApiClient.getSlots(doctorId, dateStr);
+  }
+
+  Future<void> toggleDoctorUnavailability(String doctorId, String startTime, String endTime, int? existingId) async {
+    _setLoading(true);
+    try {
+      if (existingId != null) {
+        await adminApiClient.deleteDoctorUnavailability(existingId);
+      } else {
+        await adminApiClient.addDoctorUnavailability(doctorId, startTime, endTime, "Doctor Not Available");
+      }
     } finally {
       _setLoading(false);
     }

@@ -16,6 +16,7 @@ import 'state/auth_provider.dart';
 import 'state/booking_provider.dart';
 import 'state/profile_provider.dart';
 import 'ui/screens/splash_screen.dart';
+import 'data/services/local_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,9 @@ Future<void> main() async {
 
   // Initialize Local Storage Service
   final storageService = await StorageService.init();
+
+  // Initialize Local Notification Service
+  await LocalNotificationService().init();
 
   // Instantiate Repositories & Services
   final patientApiClient = PatientApiClient();
@@ -76,7 +80,7 @@ Future<void> main() async {
           serviceRepository: serviceRepository,
           appointmentRepository: appointmentRepository,
           paymentGatewayService: paymentGatewayService,
-        )..initCatalog(),
+        ),
       ),
     ],
     child: const WadgaonkarEyeHospitalApp(),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/utils/ui_helpers.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/constants/app_policies.dart';
 import '../../../state/auth_provider.dart';
 import '../../../state/profile_provider.dart';
 import '../../widgets/custom_button.dart';
@@ -12,6 +13,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/hospital_card.dart';
 import '../../widgets/user_avatar.dart';
 import '../auth/login_screen.dart';
+import 'policy_view_screen.dart';
 
 /// User Profile Screen with patient details, edit modal, and logout action
 class ProfileScreen extends StatelessWidget {
@@ -328,7 +330,71 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
+
+              // Legal & Policies Card
+              HospitalCard(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      child: Text(
+                        'Legal & Policies',
+                        style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
+                      title: Text('Privacy Policy', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PolicyViewScreen(title: 'Privacy Policy', markdownContent: AppPolicies.privacyPolicy)),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      leading: const Icon(Icons.gavel_rounded, color: AppColors.primary),
+                      title: Text('Terms & Conditions', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PolicyViewScreen(title: 'Terms & Conditions', markdownContent: AppPolicies.termsAndConditions)),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      leading: const Icon(Icons.event_busy_rounded, color: AppColors.primary),
+                      title: Text('Cancellation & Rescheduling', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PolicyViewScreen(title: 'Cancellation Policy', markdownContent: AppPolicies.cancellationPolicy)),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      leading: const Icon(Icons.support_agent_rounded, color: AppColors.primary),
+                      title: Text('Contact Us', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PolicyViewScreen(title: 'Contact Us', markdownContent: AppPolicies.contactUs)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
 
               // Hospital Contact Card
               HospitalCard(

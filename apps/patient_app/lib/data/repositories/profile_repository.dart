@@ -72,10 +72,9 @@ class ProfileRepository implements IProfileRepository {
             .set(profile.toMap(), SetOptions(merge: true));
       }
     } catch (e) {
-      developer.log('Error saving profile: $e',
+      developer.log('Error saving profile to cloud: $e',
           name: 'ProfileRepository', error: e);
-      // Even if cloud sync fails, local save was performed
-      throw ProfileException('Failed to synchronize profile to server: $e');
+      // We swallow the error because local save was successful. Offline-first!
     }
   }
 

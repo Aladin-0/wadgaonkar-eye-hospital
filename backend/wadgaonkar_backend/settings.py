@@ -5,6 +5,8 @@ Django settings for Wadgaonkar Eye Hospital Backend.
 import os
 from pathlib import Path
 import sentry_sdk
+import firebase_admin
+from firebase_admin import credentials
 
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN", ""),
@@ -20,6 +22,14 @@ sentry_sdk.init(
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize Firebase Admin
+try:
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(os.path.join(BASE_DIR, 'firebase-service-account.json'))
+        firebase_admin.initialize_app(cred)
+except Exception as e:
+    print(f"Failed to initialize Firebase Admin: {e}")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'default-production-key-weh-2026-eye-hospital-secure')
 
@@ -29,7 +39,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Production Security Settings
-SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'True') == 'True'
+SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'False') == 'True'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', '31536000'))
@@ -98,8 +108,8 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME', 'weh_db'),
         'USER': os.environ.get('DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': '5432',
     }
 }
 
@@ -150,9 +160,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day',
-        'sensitive': '10/minute'
+        'anon': '1000/day',
+        'user': '10000/day',
+        'sensitive': '1000/minute'
     }
 }
 
@@ -162,9 +172,9 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Hospital Clinical Security Constants
 HOSPITAL_SALT = os.environ.get('HOSPITAL_SECURITY_SALT', 'WEH_SECURE_AUTH_SALT_2026')
-RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_wadgaonkar2026')
-RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'weh_secret_rzp_key_9988')
-RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'weh_webhook_secret_salt_2026')
+# Razorpay Integration
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_TYgf36LtH0ZFAW')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'aPz12NVL0QyKZlH68Xzg0OB5')
 
 # Celery Configuration
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
@@ -196,5 +206,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.payments.tasks.reconcile_pending_payments',
         'schedule': crontab(minute='*/15'), # Check every 15 minutes
     },
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 }
 

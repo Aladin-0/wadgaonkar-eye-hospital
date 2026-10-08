@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "1003169726058-dpui94dgd8kaa72vma4q2lne3aj0p4at.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wadgaonkareyehospital.wadgaonkar_eye_hospital",
+            "certificate_hash": "bcbb87e967175a1551f4ee04eda42ee40fefbdf0"
+          }
+        },
+        {
+          "client_id": "1003169726058-e47ghfkrb82edbahujbvdnb8ujb1uuo3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wadgaonkareyehospital.wadgaonkar_eye_hospital",
+            "certificate_hash": "df56dd8abc8daa439155b5e2bd02e48dd41ade35"
+          }
+        },
+        {
           "client_id": "1003169726058-t03f04ravevh0e40fkvldr5fa4vljkok.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -37,6 +53,13 @@
             {
               "client_id": "1003169726058-d5ich4uf8omjg0stm6ne74qj7b9atpkb.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1003169726058-4g4rsfd306risnpo7vos66v9dfeeeser.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wadgaonkareyehospital.wadgaonkarEyeHospital"
+              }
             }
           ]
         }

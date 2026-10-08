@@ -10,6 +10,7 @@ class TimeSlot {
   final bool isBooked;
   final bool isPast;
   final String? unavailabilityReason; // e.g. "OPD Break", "Already Booked", "Shift Ended"
+  final int? unavailabilityId; // Backend ID for deletion
 
   const TimeSlot({
     required this.id,
@@ -20,6 +21,7 @@ class TimeSlot {
     this.isBooked = false,
     this.isPast = false,
     this.unavailabilityReason,
+    this.unavailabilityId,
   });
 
   /// Formatted start time e.g. "09:20 AM"
@@ -50,19 +52,21 @@ class TimeSlot {
       'isBooked': isBooked,
       'isPast': isPast,
       'unavailabilityReason': unavailabilityReason,
+      'unavailabilityId': unavailabilityId,
     };
   }
 
   factory TimeSlot.fromMap(Map<String, dynamic> map) {
     return TimeSlot(
       id: map['id'] as String? ?? '',
-      startTime: DateTime.parse(map['startTime'] as String),
-      endTime: DateTime.parse(map['endTime'] as String),
+      startTime: DateTime.parse(map['startTime'] as String).toLocal(),
+      endTime: DateTime.parse(map['endTime'] as String).toLocal(),
       doctorId: map['doctorId'] as String? ?? '',
       isAvailable: map['isAvailable'] as bool? ?? true,
       isBooked: map['isBooked'] as bool? ?? false,
       isPast: map['isPast'] as bool? ?? false,
       unavailabilityReason: map['unavailabilityReason'] as String?,
+      unavailabilityId: map['unavailabilityId'] as int?,
     );
   }
 

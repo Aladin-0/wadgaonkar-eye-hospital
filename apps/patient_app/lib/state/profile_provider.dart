@@ -1,7 +1,9 @@
+import 'dart:developer' as developer;
 import 'package:weh_shared/weh_shared.dart';
 import 'package:flutter/foundation.dart';
 import '../core/errors/app_exception.dart';
 import '../core/utils/validators.dart';
+import '../data/services/patient_api_client.dart';
 
 import '../data/repositories/profile_repository.dart';
 
@@ -115,6 +117,21 @@ class ProfileProvider extends ChangeNotifier {
       );
 
       await profileRepository.saveProfile(newProfile);
+      
+      // Sync to Django Backend
+      try {
+        final client = PatientApiClient();
+        await client.syncFirebaseUser({
+          'uid': newProfile.uid,
+          'email': newProfile.email,
+          'display_name': newProfile.fullName,
+          'mobile_number': newProfile.mobileNumber,
+          'age': newProfile.age,
+        });
+      } catch (e) {
+        developer.log('Backend sync failed after createProfile: $e', name: 'ProfileProvider');
+      }
+
       _profile = newProfile;
       _status = ProfileStatus.profileLoaded;
       notifyListeners();
@@ -179,6 +196,21 @@ class ProfileProvider extends ChangeNotifier {
       );
 
       await profileRepository.updateProfile(updatedProfile);
+      
+      // Sync to Django Backend
+      try {
+        final client = PatientApiClient();
+        await client.syncFirebaseUser({
+          'uid': updatedProfile.uid,
+          'email': updatedProfile.email,
+          'display_name': updatedProfile.fullName,
+          'mobile_number': updatedProfile.mobileNumber,
+          'age': updatedProfile.age,
+        });
+      } catch (e) {
+        developer.log('Backend sync failed after updateProfile: $e', name: 'ProfileProvider');
+      }
+
       _profile = updatedProfile;
       _status = ProfileStatus.profileLoaded;
       notifyListeners();

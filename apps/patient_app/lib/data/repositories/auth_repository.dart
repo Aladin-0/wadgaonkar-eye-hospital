@@ -9,6 +9,8 @@ import '../../core/errors/app_exception.dart';
 
 import '../services/firebase_service.dart';
 import '../services/storage_service.dart';
+import '../services/patient_api_client.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 abstract class IAuthRepository {
   AuthUser? get currentUser;
@@ -32,6 +34,7 @@ class AuthRepository implements IAuthRepository {
   })  : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: ['email', 'profile'],
+              serverClientId: '1003169726058-d5ich4uf8omjg0stm6ne74qj7b9atpkb.apps.googleusercontent.com',
             ) {
     if (FirebaseService.isInitialized) {
       try {
@@ -77,6 +80,25 @@ class AuthRepository implements IAuthRepository {
     if (cached != null) {
       _currentUser = cached;
       _authController.add(cached);
+      
+      // Sync with Django Backend to update FCM token on app start
+      try {
+        String? fcmToken;
+        if (FirebaseService.isInitialized) {
+          fcmToken = await FirebaseMessaging.instance.getToken();
+        }
+        
+        final client = PatientApiClient();
+        await client.syncFirebaseUser({
+          'uid': cached.uid,
+          'email': cached.email,
+          'display_name': cached.displayName,
+          'fcm_token': fcmToken,
+        });
+      } catch (e) {
+        developer.log('Failed to sync with backend on restore: $e', name: 'AuthRepository');
+      }
+      
       return cached;
     }
     return null;
@@ -126,6 +148,24 @@ class AuthRepository implements IAuthRepository {
             photoUrl: fbUser.photoURL ?? googleUser.photoUrl,
             isEmailVerified: fbUser.emailVerified,
           );
+          
+          // Sync with Django Backend
+          try {
+            String? fcmToken;
+            if (FirebaseService.isInitialized) {
+              fcmToken = await FirebaseMessaging.instance.getToken();
+            }
+            
+            final client = PatientApiClient();
+            await client.syncFirebaseUser({
+              'uid': authUser.uid,
+              'email': authUser.email,
+              'display_name': authUser.displayName,
+              'fcm_token': fcmToken,
+            });
+          } catch (e) {
+            developer.log('Failed to sync with backend: $e', name: 'AuthRepository');
+          }
 
           _currentUser = authUser;
           await storageService.saveAuthUser(authUser);
@@ -208,6 +248,7 @@ class AuthRepository implements IAuthRepository {
       }
       try {
         if (await _googleSignIn.isSignedIn()) {
+          await _googleSignIn.disconnect();
           await _googleSignIn.signOut();
         }
       } catch (_) {}

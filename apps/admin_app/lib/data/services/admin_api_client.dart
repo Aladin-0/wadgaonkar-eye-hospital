@@ -6,9 +6,8 @@ class AdminApiClient {
   final SecureStorageService secureStorageService;
   late final Dio dio;
 
-  // Assuming Django backend runs on localhost:8000 for Linux desktop preview
-  // In production, this would be an environment variable.
-  static const String baseUrl = 'http://127.0.0.1:8000/api/v1';
+  // Production URL on VPS
+  static const String baseUrl = 'https://techverseservices.in/hospital-api/api/v1';
 
   AdminApiClient(this.secureStorageService) {
     dio = Dio(BaseOptions(
@@ -66,11 +65,12 @@ class AdminApiClient {
   }
 
   // -- Check-in APIs --
-  Future<Map<String, dynamic>> checkIn(String? qrPayload, String? manualCode) async {
+  Future<Map<String, dynamic>> checkIn(String? qrPayload, String? manualCode, {bool preview = false}) async {
     try {
       final data = <String, dynamic>{};
       if (qrPayload != null) data['qr_payload'] = qrPayload;
       if (manualCode != null) data['appointment_code'] = manualCode;
+      if (preview) data['preview'] = true;
       final response = await dio.post('/appointments/check_in/', data: data);
       return response.data;
     } on DioException catch (e) {
@@ -89,6 +89,27 @@ class AdminApiClient {
     } on DioException catch (e) {
       developer.log('Failed to fetch appointments: ${e.message}', name: 'AdminApiClient');
       return [];
+    }
+  }
+
+  // -- Discount Settings APIs --
+  Future<Map<String, dynamic>?> getDiscountSettings() async {
+    try {
+      final response = await dio.get('/services/discount_setting/');
+      return response.data;
+    } on DioException catch (e) {
+      developer.log('Failed to fetch discount settings: ${e.message}', name: 'AdminApiClient');
+      return null;
+    }
+  }
+
+  Future<bool> updateDiscountSettings(Map<String, dynamic> data) async {
+    try {
+      await dio.patch('/services/discount_setting/', data: data);
+      return true;
+    } on DioException catch (e) {
+      developer.log('Failed to update discount settings: ${e.message}', name: 'AdminApiClient');
+      return false;
     }
   }
 
@@ -116,6 +137,15 @@ class AdminApiClient {
     }
   }
 
+  Future<void> deleteDoctor(String id) async {
+    try {
+      await dio.delete('/doctors/$id/');
+    } on DioException catch (e) {
+      developer.log('Failed to delete doctor: ${e.message}', name: 'AdminApiClient');
+      throw Exception(e.response?.data ?? 'Error deleting doctor');
+    }
+  }
+
   // -- Services APIs --
   Future<List<dynamic>> getServices() async {
     try {
@@ -131,12 +161,23 @@ class AdminApiClient {
       if (isUpdate) {
         await dio.patch('/services/$id/', data: data);
       } else {
-        data['id'] = id;
+        if (id.isNotEmpty) {
+          data['id'] = id;
+        }
         await dio.post('/services/', data: data);
       }
     } on DioException catch (e) {
       developer.log('Failed to save service: ${e.message}', name: 'AdminApiClient');
       throw Exception(e.response?.data ?? 'Error saving service');
+    }
+  }
+
+  Future<void> deleteService(String id) async {
+    try {
+      await dio.delete('/services/$id/');
+    } on DioException catch (e) {
+      developer.log('Failed to delete service: ${e.message}', name: 'AdminApiClient');
+      throw Exception(e.response?.data ?? 'Error deleting service');
     }
   }
 
@@ -151,6 +192,43 @@ class AdminApiClient {
     } on DioException catch (e) {
       developer.log('Failed to fetch patients: ${e.message}', name: 'AdminApiClient');
       return [];
+    }
+  }
+
+  // -- Schedule & Unavailability APIs --
+  Future<List<dynamic>> getSlots(String doctorId, String dateStr) async {
+    try {
+      final response = await dio.get('/appointments/slots/', queryParameters: {
+        'doctor_id': doctorId,
+        'date': dateStr,
+      });
+      return response.data['slots'] ?? [];
+    } on DioException catch (e) {
+      developer.log('Failed to fetch slots: ${e.message}', name: 'AdminApiClient');
+      return [];
+    }
+  }
+
+  Future<void> addDoctorUnavailability(String doctorId, String startTime, String endTime, String reason) async {
+    try {
+      await dio.post('/doctors/unavailability/', data: {
+        'doctor': doctorId,
+        'start_time': startTime,
+        'end_time': endTime,
+        'reason': reason,
+      });
+    } on DioException catch (e) {
+      developer.log('Failed to add unavailability: ${e.message}', name: 'AdminApiClient');
+      throw Exception('Error adding unavailability');
+    }
+  }
+
+  Future<void> deleteDoctorUnavailability(int unavailabilityId) async {
+    try {
+      await dio.delete('/doctors/unavailability/$unavailabilityId/');
+    } on DioException catch (e) {
+      developer.log('Failed to delete unavailability: ${e.message}', name: 'AdminApiClient');
+      throw Exception('Error deleting unavailability');
     }
   }
 }

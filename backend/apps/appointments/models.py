@@ -16,6 +16,7 @@ class Appointment(models.Model):
         ('noShow', 'No Show'),
         ('expired', 'Expired (No Show via automation)'),
         ('rescheduled', 'Rescheduled'),
+        ('needsReschedule', 'Needs Reschedule (Hospital Emergency)'),
     ]
 
     PAYMENT_STATUS_CHOICES = [
@@ -63,6 +64,7 @@ class Appointment(models.Model):
     expires_at = models.DateTimeField(blank=True, null=True)
     checked_in_at = models.DateTimeField(blank=True, null=True)
     requires_rescheduling = models.BooleanField(default=False, help_text="Flagged when doctor becomes unavailable")
+    rescheduled_at = models.DateTimeField(blank=True, null=True, help_text="Set when patient reschedules the appointment")
     
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

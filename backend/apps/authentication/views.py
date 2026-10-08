@@ -14,6 +14,9 @@ class FirebaseSyncView(APIView):
     """
     permission_classes = [permissions.AllowAny]
 
+    def get_authenticators(self):
+        return []
+
     def post(self, request):
         serializer = FirebaseSyncSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -23,6 +26,7 @@ class FirebaseSyncView(APIView):
         email = data.get('email') or f"{uid}@patient.wadgaonkar.local"
         display_name = data.get('display_name') or 'Hospital Patient'
         mobile = data.get('mobile_number') or ''
+        age = data.get('age')
 
         # Ensure Django User exists
         user, _ = User.objects.get_or_create(
@@ -37,13 +41,40 @@ class FirebaseSyncView(APIView):
                 'full_name': display_name,
                 'email': data.get('email'),
                 'mobile_number': mobile,
-                'is_profile_complete': bool(mobile and display_name and display_name != 'Hospital Patient'),
+                'age': age,
+                'fcm_token': data.get('fcm_token'),
+                'is_profile_complete': bool(mobile and age and display_name and display_name != 'Hospital Patient'),
             }
         )
 
+        update_fields = []
         if not created and not profile.user:
             profile.user = user
-            profile.save(update_fields=['user'])
+            update_fields.append('user')
+            
+        fcm_token = data.get('fcm_token')
+        if not created and fcm_token and profile.fcm_token != fcm_token:
+            profile.fcm_token = fcm_token
+            update_fields.append('fcm_token')
+
+        if not created and mobile and profile.mobile_number != mobile:
+            profile.mobile_number = mobile
+            update_fields.append('mobile_number')
+
+        if not created and age and profile.age != age:
+            profile.age = age
+            update_fields.append('age')
+            
+        if not created and display_name and profile.full_name != display_name:
+            profile.full_name = display_name
+            update_fields.append('full_name')
+
+        if not created:
+            profile.is_profile_complete = bool(profile.mobile_number and profile.age and profile.full_name and profile.full_name != 'Hospital Patient')
+            update_fields.append('is_profile_complete')
+            
+        if update_fields:
+            profile.save(update_fields=update_fields)
 
         # Generate SimpleJWT tokens
         refresh = RefreshToken.for_user(user)
