@@ -56,3 +56,6 @@ service-account*.json
 *.p8
 **/Flutter/ephemeral/
 backend/venv/
+
+# Apple signing keys and certificates - NEVER commit
+apple-keys-wadgaonkar/
