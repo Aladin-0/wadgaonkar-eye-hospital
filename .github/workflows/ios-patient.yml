@@ -157,6 +157,7 @@ jobs:
         run: |
           set -euo pipefail
           brew tap facebook/fb
+          brew trust facebook/fb
           brew install idb-companion
           pip3 install --break-system-packages fb-idb
           idb_companion --udid "$UDID" > /tmp/idb_companion.log 2>&1 &
