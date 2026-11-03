@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wadgaonkar Eye Hospital - Official Policies</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wadgaonkar Eye Hospital - Official Website</title>
+<meta name="description" content="Wadgaonkar Eye Hospital official website: policies and contact.">
+<link rel="icon" href="/logo.png">
+<style>
         :root {
             --primary: #0077b6;
             --primary-dark: #023e8a;
@@ -152,104 +153,27 @@
                 padding: 1.5rem;
             }
         }
-    </style>
+    
+        .hero p{font-size:1.05rem}
+        .cards{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:1.5rem}
+        .cards a{display:block;padding:1.25rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--primary-dark);font-weight:600;background:var(--bg)}
+        .cards a:hover{border-color:var(--primary)}
+        .note{background:#e7f5ff;border:1px solid #a5d8ff;border-radius:8px;padding:1rem;margin-bottom:1rem}
+</style>
 </head>
 <body>
-
-    <header>
-        <a href="#" class="brand">
-            <img src="logo.png" alt="Wadgaonkar Eye Hospital Logo">
-            <h1>Wadgaonkar Eye Hospital</h1>
-        </a>
-        <nav>
-            <a href="#privacy">Privacy Policy</a>
-            <a href="#terms">Terms & Conditions</a>
-            <a href="#cancellation">Cancellation Policy</a>
-            <a href="#contact">Contact Us</a>
-        </nav>
-    </header>
-
-    <div class="container">
-        <section id="privacy">
-            <h1 class="section-title">Privacy Policy</h1>
-            <p><strong>Last Updated:</strong> September 3, 2026</p>
-            <p>Welcome to the Wadgaonkar Eye Hospital Patient Application ("App"). This Privacy Policy explains how Wadgaonkar Eye Hospital ("we", "us", or "our") collects, uses, shares, and protects your personal and sensitive information when you use our App and services.</p>
-            <p>We are committed to protecting your privacy and ensuring compliance with the Digital Personal Data Protection (DPDP) Act of India and the guidelines set forth by the Google Play Store.</p>
-            
-            <h2>1. Information We Collect</h2>
-            <p>To provide you with our medical scheduling and consultation services, we may collect the following types of information:</p>
-            <ul>
-                <li><strong>Personal Information:</strong> Name, age, gender, and contact details (mobile number, email address) provided during registration.</li>
-                <li><strong>Authentication Data:</strong> We use Firebase Authentication and Google Sign-In to securely verify your identity.</li>
-                <li><strong>Health Information:</strong> Information regarding your appointments, selected services (e.g., eye checkup), and past booking history to determine discount eligibility (e.g., 30-Day Follow-Up).</li>
-                <li><strong>Device Information:</strong> Basic device identifiers necessary for crash reporting and sending appointment reminder push notifications.</li>
-            </ul>
-
-            <h2>2. How We Use Your Information</h2>
-            <p>Your data is strictly used for the following purposes:</p>
-            <ul>
-                <li>To schedule, manage, and track your OPD appointments.</li>
-                <li>To process pre-paid online payments securely via the PhonePe Payment Gateway.</li>
-                <li>To send you automated reminders (via push notifications) 15 minutes prior to your scheduled slot.</li>
-                <li>To maintain a digital medical record of your visits.</li>
-            </ul>
-
-            <h2>3. Data Security & Deletion</h2>
-            <p>We implement robust security measures, including HTTPS encryption and secure token-based API authentication, to protect your data. You have the right to request the deletion of your account and associated personal data by contacting our support team.</p>
-        </section>
-
-        <section id="terms">
-            <h1 class="section-title">Terms & Conditions</h1>
-            <p><strong>Last Updated:</strong> September 3, 2026</p>
-            <p>Welcome to the Wadgaonkar Eye Hospital App. By downloading, accessing, or using this application, you agree to be bound by the following Terms and Conditions.</p>
-
-            <h2>1. Services Provided</h2>
-            <p>Wadgaonkar Eye Hospital provides this digital platform for patients to view available doctors, book OPD appointments, pre-pay for consultations securely, and manage existing appointments.</p>
-            <p><strong>Medical Disclaimer:</strong> This application is for booking and administrative purposes only. It is <strong>not</strong> a substitute for emergency medical care. In case of a medical emergency, please visit the nearest hospital immediately.</p>
-
-            <h2>2. Payments and Billing</h2>
-            <ul>
-                <li>All consultation fees must be pre-paid through the App using our integrated payment gateway (PhonePe).</li>
-                <li>The fee displayed at checkout is the final amount. Any applicable discounts are automatically calculated.</li>
-                <li>By confirming a booking, you authorize us to charge the specified amount to your chosen payment method.</li>
-            </ul>
-        </section>
-
-        <section id="cancellation">
-            <h1 class="section-title">Cancellation & Rescheduling Policy</h1>
-            <p><strong>Last Updated:</strong> September 3, 2026</p>
-            
-            <h2>1. Strict No-Refund Policy</h2>
-            <p>All payments made for OPD consultations (such as eye checkups) are final. <strong>We do not offer monetary refunds for cancelled appointments under any circumstances.</strong></p>
-            <p>We do not sell physical products; we provide time-slotted medical services. When you book a slot, that time is exclusively reserved for you. Therefore, cancellations do not qualify for a refund to your bank account, UPI ID, or credit card.</p>
-
-            <h2>2. Rescheduling (No Wasted Money)</h2>
-            <p>While we do not offer refunds, <strong>your money is never wasted.</strong></p>
-            <p>If you are unable to attend your scheduled appointment, you have the flexibility to <strong>reschedule</strong> your visit to any available future date and time slot for the same doctor and service. The pre-paid amount is fully carried over to your new rescheduled slot at no additional cost.</p>
-        </section>
-
-        <section id="contact">
-            <h1 class="section-title">Contact Us</h1>
-            <p>Wadgaonkar Eye Hospital is dedicated to providing you with the best optical and medical care. If you have any questions about your appointments, app usage, billing, or general inquiries, our dedicated support team is always here to assist you.</p>
-            
-            <h2>Get In Touch</h2>
-            <ul>
-                <li><strong>Email:</strong> wadgaonkareyeehospital@gmail.com</li>
-                <li><strong>Phone:</strong> 02402324219</li>
-            </ul>
-
-            <h2>Visit Us</h2>
-            <p>126, Madhushri,<br>
-            Varad Ganesh Mandir Rd,<br>
-            Samarth Nagar,<br>
-            Chhatrapati Sambhajinagar,<br>
-            Maharashtra 431001</p>
-        </section>
-    </div>
-
-    <footer>
-        &copy; 2026 Wadgaonkar Eye Hospital. All rights reserved.
-    </footer>
-
+<header>
+<a href="/" class="brand"><img src="/logo.png" alt="Wadgaonkar Eye Hospital Logo"><h1>Wadgaonkar Eye Hospital</h1></a>
+<nav><a href="/privacy">Privacy Policy</a><a href="/terms">Terms &amp; Conditions</a><a href="/cancellation">Cancellation Policy</a><a href="/delete-account">Delete Account</a><a href="/contact">Contact Us</a></nav>
+</header>
+<div class="container"><section>
+<h1 class="section-title">Wadgaonkar Eye Hospital</h1>
+<p>Official information for the Wadgaonkar Eye Hospital Patient App: book OPD appointments with eye specialists, pay online and manage your visits.</p>
+<p><strong>Address:</strong> 126, Madhushri, Varad Ganesh Mandir Rd, Samarth Nagar, Chhatrapati Sambhajinagar, Maharashtra 431001<br><strong>Phone:</strong> 02402324219<br><strong>Email:</strong> <a href="mailto:wadgaonkareyeehospital@gmail.com">wadgaonkareyeehospital@gmail.com</a></p>
+<div class="cards">
+<a href="/privacy">Privacy Policy</a><a href="/terms">Terms &amp; Conditions</a><a href="/cancellation">Cancellation Policy</a><a href="/delete-account">Delete Account</a><a href="/contact">Contact Us</a>
+</div>
+</section></div>
+<footer>&copy; 2026 Wadgaonkar Eye Hospital, Chhatrapati Sambhajinagar, Maharashtra, India</footer>
 </body>
 </html>

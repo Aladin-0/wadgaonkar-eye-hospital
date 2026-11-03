@@ -1,5 +1,8 @@
 import 'package:weh_shared/weh_shared.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/utils/ui_helpers.dart';
@@ -22,13 +25,21 @@ class _LoginScreenState extends State<LoginScreen> {
   // Guard flag: prevents double-tap during OS Google account picker
   bool _isSigningIn = false;
 
-  Future<void> _handleGoogleSignIn() async {
+  Future<void> _handleGoogleSignIn() => _handleSignIn(
+        (p) => p.signInWithGoogle(),
+      );
+
+  Future<void> _handleAppleSignIn() => _handleSignIn(
+        (p) => p.signInWithApple(),
+      );
+
+  Future<void> _handleSignIn(Future<bool> Function(AuthProvider) signIn) async {
     // Prevent re-entrant calls (double-tap bug fix)
     if (_isSigningIn) return;
     setState(() => _isSigningIn = true);
 
     final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.signInWithGoogle();
+    final success = await signIn(authProvider);
 
     // Always reset the flag so button works again if cancelled
     if (!mounted) return;
@@ -215,6 +226,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             : _handleGoogleSignIn,
                       ),
                     ),
+                    if (!kIsWeb && Platform.isIOS) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 52,
+                        child: SignInWithAppleButton(
+                          onPressed: isLoading ? () {} : _handleAppleSignIn,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Text(
                       AppStrings.loginTerms,

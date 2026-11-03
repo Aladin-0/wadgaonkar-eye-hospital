@@ -326,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               transform: Matrix4.identity()
                                 ..setEntry(3, 2, 0.001) // perspective
                                 ..rotateZ(rotation)
-                                ..translate(0.0, verticalOffset),
+                                ..translateByDouble(0.0, verticalOffset, 0.0, 1.0),
                               alignment: Alignment.center,
                               child: Opacity(
                                 opacity: value.clamp(0.4, 1.0),

@@ -49,6 +49,19 @@ class FakePatientApiClient extends PatientApiClient {
   }
 
   @override
+  Future<List<dynamic>> getSlots(String doctorId, String date, {String? serviceId}) async {
+    final start = DateTime.parse('${date}T10:00:00');
+    return [
+      TimeSlot(
+        id: 'slot_$date',
+        startTime: start,
+        endTime: start.add(const Duration(minutes: 20)),
+        doctorId: doctorId,
+      ).toMap(),
+    ];
+  }
+
+  @override
   Future<List<dynamic>> getPatientAppointments(String patientUid) async {
     throw Exception('Simulated network error to force local cache read');
   }
@@ -137,7 +150,9 @@ void main() {
       if (futureDate.weekday == 7) {
         futureDate = futureDate.add(const Duration(days: 1)); // Skip Sunday
       }
-      await bookingProvider.selectDate(futureDate);
+      bookingProvider.selectDate(futureDate);
+      // selectDate is fire-and-forget; wait for the slot fetch to finish.
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Pick a weekday slot
       final selectableSlots = bookingProvider.availableSlots.where((s) => s.isSelectable).toList();
