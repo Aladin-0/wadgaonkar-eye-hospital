@@ -188,8 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                       _buildFeatureItem(
                         icon: Icons.receipt_long_rounded,
-                        title: 'Digital Health Records',
-                        subtitle: 'Access prescriptions, vision test charts & diagnostics.',
+                        title: 'Appointments & OPD Pass',
+                        subtitle: 'View your upcoming and past visits and your OPD pass.',
                       ),
                       const SizedBox(height: 12),
                       _buildFeatureItem(
