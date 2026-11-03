@@ -67,6 +67,55 @@ They cannot be read back from GitHub; only replaced.
 **Review demo account** (for Apple's reviewers): Google account `aathvaniii@gmail.com`;
 password is saved in App Store Connect → Version 1.0.1 → App Review Information.
 
+### 3.1 If a key or file is LOST — how to get a new one
+
+**First, stay calm:** losing these files does **not** affect the app already submitted/live, and does not affect Apple's
+review. It only blocks *new builds* (signing), *push notifications*, or *Apple sign-in setup* until replaced.
+Only the Apple account holder/admin (qutubahmad3@gmail.com, team 3G5YQ4MRUM) can do these in the Apple websites.
+
+| Lost item | Can it be downloaded again? | What to do |
+|---|---|---|
+| `AuthKey_GC735QQM4F.p8` (Sign in with Apple + push) | **No** (Apple gives it once) | developer.apple.com → Certificates, Identifiers & Profiles → **Keys** → "+" → name it, tick **Apple Push Notifications service (APNs)** (Configure → environment "Sandbox & Production", Team Scoped) and **Sign in with Apple** (Configure → primary App ID = the Wadgaonkar app) → Register → **Download the .p8 immediately** and save it in the keys folder. Then **upload it to Firebase**: Firebase console → project `wadgaonkar-eye-hospital` → Project settings → Cloud Messaging → Apple app configuration → APNs Authentication Key → Upload (Key ID = the new key's ID, Team ID `3G5YQ4MRUM`). Optionally revoke the old key (Keys → old key → Revoke). Apple allows only a few APNs keys per team, so revoke the old one if "+" is refused. Apple sign-in in Firebase needs no key for the native iOS app (the Firebase Apple provider was enabled with the other fields blank). |
+| `AuthKey_MG4VBPY9KW.p8` (App Store Connect API key used by CI) | **No** (once only) | appstoreconnect.apple.com → **Users and Access → Integrations → App Store Connect API → Team Keys** → "+" → name "GitHub CI", access **App Manager** → Generate → download the .p8 once. Update 3 GitHub secrets: `ASC_KEY_ID` (new key ID), `ASC_ISSUER_ID` (same issuer ID as before, shown on that page), `ASC_KEY_P8` (full file contents). Revoke the old key. |
+| `dist.key` (private key of the distribution certificate) | **No** — a private key lives only on the machine that made it | Make a new one (commands below), then in developer.apple.com → **Certificates** → "+" → **Apple Distribution** → upload the new `.csr` → download the new `.cer`. Build a new `.p12` (below). The old certificate can be revoked (this does **not** affect apps already published). Then **make a new App Store provisioning profile** (profiles are tied to one certificate): Profiles → "+" → **App Store Connect** → App ID = the Wadgaonkar app → select the NEW certificate → name it → download. Update the 3 GitHub secrets `IOS_DIST_P12_B64`, `IOS_DIST_P12_PASSWORD`, `IOS_APPSTORE_PROFILE_B64`. |
+| `dist.cer` | **Yes** — Apple portal → Certificates → click it → Download | — |
+| `appstore.mobileprovision` | **Yes** — Apple portal → Profiles → click it → Download (or Edit → regenerate) | If the profile is "Invalid", Edit → Save/Generate again, download, update `IOS_APPSTORE_PROFILE_B64`. |
+| `dist.p12` | Rebuildable from `dist.key` + `dist.cer` | Commands below. |
+| `dist.csr` | Rebuildable | Commands below. |
+| A GitHub secret (value unknown) | GitHub never shows secret values | Just set it again from the files in the keys folder (commands below). |
+
+**Commands** (run inside the keys folder; use a new password of your choice and remember it in `IOS_DIST_P12_PASSWORD`):
+
+```bash
+cd "/home/aladin/projects/wagaokar app/apple-keys-wadgaonkar"
+
+# 1) New private key + signing request (only if dist.key is lost)
+openssl genrsa -out dist.key 2048
+openssl req -new -key dist.key -out dist.csr \
+  -subj "/emailAddress=qutubahmad3@gmail.com/CN=Wadgaonkar Eye Hospital/C=IN"
+chmod 600 dist.key dist.csr
+#    -> upload dist.csr on developer.apple.com (Certificates -> + -> Apple Distribution), download dist.cer
+
+# 2) Build the .p12 from the key + downloaded certificate
+openssl x509 -inform der -in dist.cer -out dist.pem
+openssl pkcs12 -export -inkey dist.key -in dist.pem -out dist.p12 -passout pass:CHOOSE_A_PASSWORD
+
+# 3) Put them into GitHub secrets (from the project folder; the repo is auto-detected)
+base64 -w0 dist.p12 | gh secret set IOS_DIST_P12_B64
+gh secret set IOS_DIST_P12_PASSWORD --body "CHOOSE_A_PASSWORD"
+base64 -w0 appstore.mobileprovision | gh secret set IOS_APPSTORE_PROFILE_B64
+# App Store Connect API key secrets (only if that key was replaced):
+gh secret set ASC_KEY_ID --body "NEW_KEY_ID"
+gh secret set ASC_ISSUER_ID --body "ISSUER_ID"
+gh secret set ASC_KEY_P8 < AuthKey_NEWKEYID.p8
+```
+
+Note: Claude Code's permission system may ask the user to approve writing GitHub secrets and creating Apple
+credentials; the user can approve those one at a time. Apple's own websites block Google sign-in in automated
+browsers, so Firebase steps must be done by the user in a normal browser.
+
+After replacing anything, run a build to confirm: `gh workflow run ios-patient.yml --ref ios-release-prep`.
+
 ---
 
 ## 4. What was done, in order
