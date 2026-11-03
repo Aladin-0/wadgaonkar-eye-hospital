@@ -152,6 +152,24 @@ jobs:
           mkdir -p ../../screenshots
           xcrun simctl io "$UDID" screenshot ../../screenshots/01-launch.png
 
+      - name: Dismiss notification prompt and capture login screen
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          brew tap facebook/fb
+          brew install idb-companion
+          pip3 install --break-system-packages fb-idb
+          idb_companion --udid "$UDID" > /tmp/idb_companion.log 2>&1 &
+          sleep 8
+          # "Allow" button (iPhone 16 Pro, 402x874 pt)
+          idb ui tap --udid "$UDID" 275 529
+          sleep 6
+          xcrun simctl io "$UDID" screenshot ../../screenshots/02-login.png
+          # Scroll content may hide the Apple button on small screens
+          idb ui swipe --udid "$UDID" 200 700 200 250
+          sleep 2
+          xcrun simctl io "$UDID" screenshot ../../screenshots/03-login-scrolled.png
+
       - name: Verify app is still running (no crash)
         run: |
           set -euo pipefail
