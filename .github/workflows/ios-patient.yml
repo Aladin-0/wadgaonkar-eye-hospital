@@ -99,3 +99,74 @@ jobs:
           path: apps/patient_app/build/ios/iphoneos/patient-ios-unsigned.ipa
           if-no-files-found: error
           retention-days: 7
+
+  simulator:
+    name: Run app on iPhone simulator and capture screenshots
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: apps/patient_app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd ios && pod install
+
+      - name: Build for simulator
+        run: flutter build ios --simulator --debug
+
+      - name: Boot iPhone simulator
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)['devices']
+          for rt,devs in d.items():
+              if 'iOS' in rt:
+                  for x in devs:
+                      if x['name'].startswith('iPhone') and x['isAvailable']:
+                          print(x['udid']); sys.exit()
+          ")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Install and launch app
+        run: |
+          set -euo pipefail
+          xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          xcrun simctl launch "$UDID" com.wadgaonkareyehospital.wadgaonkarEyeHospital
+          sleep 20
+          mkdir -p ../../screenshots
+          xcrun simctl io "$UDID" screenshot ../../screenshots/01-launch.png
+
+      - name: Verify app is still running (no crash)
+        run: |
+          set -euo pipefail
+          if xcrun simctl spawn "$UDID" launchctl list | grep -q com.wadgaonkareyehospital; then
+            echo "App is running."
+          else
+            echo "::error::App is not running - it crashed on launch"
+            exit 1
+          fi
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-screenshots
+          path: screenshots/
+          if-no-files-found: warn
+          retention-days: 7
