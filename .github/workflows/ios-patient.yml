@@ -189,3 +189,92 @@ jobs:
           path: screenshots/
           if-no-files-found: warn
           retention-days: 7
+
+  testflight:
+    name: Build signed IPA and upload to TestFlight
+    # Manual only: Actions tab -> "Patient iOS CI" -> Run workflow
+    if: github.event_name == 'workflow_dispatch'
+    needs: [ios]
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: apps/patient_app
+
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify App Store Connect secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for v in ASC_KEY_ID ASC_ISSUER_ID; do
+            [ -n "${!v:-}" ] || { echo "::error::Missing secret $v"; exit 1; }
+          done
+          [ -n "${{ secrets.ASC_KEY_P8 }}" ] || { echo "::error::Missing secret ASC_KEY_P8"; exit 1; }
+
+      - name: Install App Store Connect API key
+        shell: bash
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s\n' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          cache: true
+
+      - name: Build iOS release (unsigned)
+        run: |
+          flutter pub get
+          (cd ios && pod install)
+          flutter build ios --release --no-codesign --build-number=${{ github.run_number }}
+
+      - name: Archive with automatic signing
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace -scheme Runner \
+            -configuration Release -archivePath build/Runner.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM=3G5YQ4MRUM
+
+      - name: Export IPA
+        run: |
+          set -euo pipefail
+          xcodebuild -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Upload to TestFlight
+        run: |
+          set -euo pipefail
+          xcrun altool --upload-app --type ios \
+            -f build/ipa/*.ipa \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Save IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patient-ios-signed
+          path: apps/patient_app/build/ipa/*.ipa
+          retention-days: 7
