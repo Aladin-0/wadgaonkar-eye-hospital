@@ -168,6 +168,14 @@ replace the three `IOS_*` GitHub secrets. The Apple Developer membership also re
 8. Optional: EU trader status is **not** needed while the app is India-only. Needed if you ever add EU countries.
 9. The old Django `/privacy/` page on the server (techverseservices.in) may still show the old policy text; the
    official URL for Apple is the Firebase one.
+10. **Raise the minimum iOS version from 13.0 to 15.0 — before April 2027.** Apple emailed (2026-11-04, build 28):
+    "ITMS-90068: Deployment target too low — your app targets iOS 13.0. Starting in April 2027, iOS apps must
+    target 15.0 or later to be uploaded." It is only a **warning** today (delivery succeeded, does not block the
+    current review). Do it in the **next update**, not now (changing it now means a new build + resubmission, which
+    restarts Apple's ~48 h wait). Where: `apps/patient_app/ios/Runner.xcodeproj/project.pbxproj`
+    (`IPHONEOS_DEPLOYMENT_TARGET = 13.0;` appears twice, around lines 363 and 491 → set to `15.0`), and check
+    `apps/patient_app/ios/Podfile` (`platform :ios, '15.0'` if it sets one). Then run the iOS build workflow and
+    confirm the warning is gone. Check that all plugins still support iOS 15 (they should).
 
 ---
 
