@@ -1,10 +1,8 @@
 import 'package:weh_shared/weh_shared.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../widgets/custom_button.dart';
-import '../../widgets/hospital_card.dart';
 import '../shell/main_shell_screen.dart';
 
 /// Digital Appointment Pass & Receipt Screen with QR code verification payload
@@ -85,9 +83,9 @@ class AppointmentReceiptScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
-                    BoxShadow(color: const Color(0xFF0B2447).withOpacity(0.35), blurRadius: 40, offset: const Offset(0, 20)),
-                    BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 80, spreadRadius: -8, offset: const Offset(0, 8)),
-                    BoxShadow(color: const Color(0xFF00B4D8).withOpacity(0.08), blurRadius: 30, offset: const Offset(0, 4)),
+                    BoxShadow(color: const Color(0xFF0B2447).withValues(alpha: 0.35), blurRadius: 40, offset: const Offset(0, 20)),
+                    BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 80, spreadRadius: -8, offset: const Offset(0, 8)),
+                    BoxShadow(color: const Color(0xFF00B4D8).withValues(alpha: 0.08), blurRadius: 30, offset: const Offset(0, 4)),
                   ],
                 ),
                 child: Column(
@@ -108,7 +106,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                           Positioned(
                             right: -30,
                             top: -10,
-                            child: Icon(Icons.remove_red_eye_rounded, size: 140, color: Colors.white.withOpacity(0.03)),
+                            child: Icon(Icons.remove_red_eye_rounded, size: 140, color: Colors.white.withValues(alpha: 0.03)),
                           ),
                           // Diagonal Shimmer Stripe
                           Positioned(
@@ -116,7 +114,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                             top: -50,
                             child: Transform.rotate(
                               angle: 0.5,
-                              child: Container(width: 120, height: 200, color: Colors.white.withOpacity(0.03)),
+                              child: Container(width: 120, height: 200, color: Colors.white.withValues(alpha: 0.03)),
                             ),
                           ),
                           Column(
@@ -130,7 +128,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                                         child: const Icon(Icons.remove_red_eye_rounded, color: Colors.white, size: 18),
                                       ),
                                       const SizedBox(width: 12),
@@ -146,7 +144,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                   // Live Badge
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(color: const Color(0xFF00B4D8).withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF00B4D8).withOpacity(0.5))),
+                                    decoration: BoxDecoration(color: const Color(0xFF00B4D8).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF00B4D8).withValues(alpha: 0.5))),
                                     child: Row(
                                       children: [
                                         TweenAnimationBuilder<double>(
@@ -172,21 +170,21 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('PATIENT', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
+                                      Text('PATIENT', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
                                       const SizedBox(height: 4),
                                       Text(appointment.patientName.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1)),
                                       const SizedBox(height: 4),
-                                      Text('AGE: ${appointment.patientAge} YRS', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.w600)),
+                                      Text('AGE: ${appointment.patientAge} YRS', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Text('BOOKING REF', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
+                                      Text('BOOKING REF', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
                                       const SizedBox(height: 4),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                         child: Text(appointment.appointmentCode, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1.5, fontFamily: 'monospace')),
                                       ),
                                     ],
@@ -212,7 +210,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('SPECIALIST', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                                Text('SPECIALIST', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 2)),
                                 const SizedBox(height: 5),
                                 Text(appointment.doctorName, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, height: 1.2)),
                                 const SizedBox(height: 4),
@@ -240,7 +238,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                               children: List.generate(4, (_) => Container(
                                 width: 2, height: 4,
                                 margin: const EdgeInsets.only(bottom: 4),
-                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(2)),
+                                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)),
                               )),
                             ),
                           ),
@@ -250,7 +248,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('SCHEDULE', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                                Text('SCHEDULE', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 2)),
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
@@ -291,7 +289,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                   const SizedBox(width: 24),
                                   ...List.generate(
                                     ((constraints.maxWidth - 48) / 10).floor(),
-                                    (_) => Container(width: 5, height: 1, color: Colors.white.withOpacity(0.18)),
+                                    (_) => Container(width: 5, height: 1, color: Colors.white.withValues(alpha: 0.18)),
                                   ),
                                   const SizedBox(width: 24),
                                 ],
@@ -320,12 +318,12 @@ class AppointmentReceiptScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('FEE BREAKDOWN', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                                Text('FEE BREAKDOWN', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 2)),
                                 const SizedBox(height: 12),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('Consultation', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.w600)),
+                                    Text('Consultation', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.w600)),
                                     Text('₹${appointment.consultationFee.toInt()}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                                   ],
                                 ),
@@ -333,18 +331,18 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('Registration', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.w600)),
+                                    Text('Registration', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.w600)),
                                     const Text('FREE', style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.w800)),
                                   ],
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 10),
-                                  child: Container(height: 1, color: Colors.white.withOpacity(0.1)),
+                                  child: Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('TOTAL', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                                    Text('TOTAL', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1)),
                                     Text('₹${appointment.consultationFee.toInt()}', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
                                   ],
                                 ),
@@ -353,9 +351,9 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: appointment.paymentStatus == PaymentStatus.paid ? Colors.greenAccent.withOpacity(0.1) : Colors.orangeAccent.withOpacity(0.1),
+                                    color: appointment.paymentStatus == PaymentStatus.paid ? Colors.greenAccent.withValues(alpha: 0.1) : Colors.orangeAccent.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: appointment.paymentStatus == PaymentStatus.paid ? Colors.greenAccent.withOpacity(0.25) : Colors.orangeAccent.withOpacity(0.25)),
+                                    border: Border.all(color: appointment.paymentStatus == PaymentStatus.paid ? Colors.greenAccent.withValues(alpha: 0.25) : Colors.orangeAccent.withValues(alpha: 0.25)),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -441,7 +439,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
                                 Text(
                                   'SCAN AT CLINIC',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: Colors.white.withValues(alpha: 0.7),
                                     fontSize: 9,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 1.0,
@@ -483,6 +481,7 @@ class AppointmentReceiptScreen extends StatelessWidget {
     );
   }
 
+  // ignore: unused_element
   Widget _buildDetailRow(String label, String value, {String? subValue}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

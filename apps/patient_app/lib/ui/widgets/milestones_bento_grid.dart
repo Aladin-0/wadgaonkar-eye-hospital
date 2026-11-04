@@ -325,6 +325,7 @@ class _BentoCard extends StatelessWidget {
 }
 
 extension _ConstrainedExtension on Widget {
+  // ignore: unused_element
   Widget constrained({double? height, double? width}) {
     return SizedBox(
       height: height,

@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: patient-ios-${{ github.workflow }}-${{ github.ref }}
+  group: patient-ios-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -98,4 +98,221 @@ jobs:
           name: patient-ios-unsigned
           path: apps/patient_app/build/ios/iphoneos/patient-ios-unsigned.ipa
           if-no-files-found: error
+          retention-days: 7
+
+  simulator:
+    name: Run app on iPhone simulator and capture screenshots
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: apps/patient_app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd ios && pod install
+
+      - name: Build for simulator
+        run: flutter build ios --simulator --debug
+
+      - name: Boot iPhone simulator
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)['devices']
+          for rt,devs in d.items():
+              if 'iOS' in rt:
+                  for x in devs:
+                      if x['name'].startswith('iPhone') and x['isAvailable']:
+                          print(x['udid']); sys.exit()
+          ")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Install and launch app
+        run: |
+          set -euo pipefail
+          xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          xcrun simctl launch "$UDID" com.wadgaonkareyehospital.wadgaonkarEyeHospital
+          sleep 20
+          mkdir -p ../../screenshots
+          xcrun simctl io "$UDID" screenshot ../../screenshots/01-launch.png
+
+      - name: Dismiss notification prompt and capture login screen
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          brew tap facebook/fb
+          brew trust facebook/fb
+          brew install idb-companion
+          pip3 install --break-system-packages fb-idb
+          idb_companion --udid "$UDID" > /tmp/idb_companion.log 2>&1 &
+          sleep 8
+          # "Allow" button (iPhone 16 Pro, 402x874 pt)
+          idb ui tap --udid "$UDID" 275 529
+          sleep 6
+          xcrun simctl io "$UDID" screenshot ../../screenshots/02-login.png
+          # Scroll content may hide the Apple button on small screens
+          idb ui swipe --udid "$UDID" 200 700 200 250
+          sleep 2
+          xcrun simctl io "$UDID" screenshot ../../screenshots/03-login-scrolled.png
+
+      - name: Verify app is still running (no crash)
+        run: |
+          set -euo pipefail
+          if xcrun simctl spawn "$UDID" launchctl list | grep -q com.wadgaonkareyehospital; then
+            echo "App is running."
+          else
+            echo "::error::App is not running - it crashed on launch"
+            exit 1
+          fi
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-screenshots
+          path: screenshots/
+          if-no-files-found: warn
+          retention-days: 7
+
+  testflight:
+    name: Build signed IPA and upload to TestFlight
+    # Manual only: Actions tab -> "Patient iOS CI" -> Run workflow
+    if: github.event_name == 'workflow_dispatch'
+    needs: [ios]
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: apps/patient_app
+
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify App Store Connect secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for v in ASC_KEY_ID ASC_ISSUER_ID; do
+            [ -n "${!v:-}" ] || { echo "::error::Missing secret $v"; exit 1; }
+          done
+          [ -n "${{ secrets.ASC_KEY_P8 }}" ] || { echo "::error::Missing secret ASC_KEY_P8"; exit 1; }
+
+      - name: Install App Store Connect API key
+        shell: bash
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s\n' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          cache: true
+
+      - name: Build iOS release (unsigned)
+        run: |
+          flutter pub get
+          (cd ios && pod install)
+          flutter build ios --release --no-codesign --build-number=${{ github.run_number }}
+
+      - name: Archive (unsigned; signing happens at export)
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace -scheme Runner \
+            -configuration Release -archivePath build/Runner.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=3G5YQ4MRUM
+
+      - name: Install signing certificate and profile
+        shell: bash
+        env:
+          DIST_P12_B64: ${{ secrets.IOS_DIST_P12_B64 }}
+          DIST_P12_PASSWORD: ${{ secrets.IOS_DIST_P12_PASSWORD }}
+          PROFILE_B64: ${{ secrets.IOS_APPSTORE_PROFILE_B64 }}
+        run: |
+          set -euo pipefail
+          for v in DIST_P12_B64 DIST_P12_PASSWORD PROFILE_B64; do
+            [ -n "${!v:-}" ] || { echo "::error::Missing secret for $v"; exit 1; }
+          done
+          KC="$RUNNER_TEMP/signing.keychain-db"
+          KCPASS="$(uuidgen)"
+          security create-keychain -p "$KCPASS" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KCPASS" "$KC"
+          echo "$DIST_P12_B64" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -P "$DIST_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KCPASS" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" login.keychain-db
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE_B64" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i "$RUNNER_TEMP/profile.mobileprovision")")
+          cp "$RUNNER_TEMP/profile.mobileprovision" ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
+          security find-identity -v -p codesigning "$KC"
+
+      - name: Export IPA (manual signing)
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>3G5YQ4MRUM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.wadgaonkareyehospital.wadgaonkarEyeHospital</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
+            <key>uploadSymbols</key><true/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Upload to TestFlight
+        run: |
+          set -euo pipefail
+          xcrun altool --upload-app --type ios \
+            -f build/ipa/*.ipa \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Save IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patient-ios-signed
+          path: apps/patient_app/build/ipa/*.ipa
           retention-days: 7

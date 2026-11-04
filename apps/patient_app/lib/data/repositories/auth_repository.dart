@@ -1,5 +1,9 @@
 import 'package:weh_shared/weh_shared.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/foundation.dart';
@@ -16,7 +20,9 @@ abstract class IAuthRepository {
   AuthUser? get currentUser;
   Stream<AuthUser?> get authStateChanges;
   Future<AuthUser?> signInWithGoogle();
+  Future<AuthUser?> signInWithApple();
   Future<void> signOut();
+  Future<bool> deleteAccount();
   Future<AuthUser?> restoreSession();
 }
 
@@ -238,6 +244,98 @@ class AuthRepository implements IAuthRepository {
       if (e is AuthException) rethrow;
       throw AuthException('Failed to complete sign-in. Please try again.');
     }
+  }
+
+  @override
+  Future<AuthUser?> signInWithApple() async {
+    try {
+      final rawNonce = _generateNonce();
+      final nonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+      final apple = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      final credential = fb_auth.OAuthProvider('apple.com').credential(
+        idToken: apple.identityToken,
+        rawNonce: rawNonce,
+        accessToken: apple.authorizationCode,
+      );
+
+      final authInstance = _firebaseAuth ?? fb_auth.FirebaseAuth.instance;
+      final result = await authInstance.signInWithCredential(credential);
+      final fbUser = result.user;
+      if (fbUser == null) {
+        throw AuthException('Failed to retrieve user identity from Firebase.');
+      }
+
+      // Apple only returns the name on the very first sign-in.
+      final givenName = apple.givenName ?? '';
+      final familyName = apple.familyName ?? '';
+      final appleName = '$givenName $familyName'.trim();
+      if ((fbUser.displayName == null || fbUser.displayName!.isEmpty) &&
+          appleName.isNotEmpty) {
+        await fbUser.updateDisplayName(appleName);
+      }
+
+      final authUser = AuthUser(
+        uid: fbUser.uid,
+        email: fbUser.email ?? apple.email,
+        displayName: appleName.isNotEmpty ? appleName : fbUser.displayName,
+        photoUrl: fbUser.photoURL,
+        isEmailVerified: fbUser.emailVerified,
+      );
+
+      try {
+        String? fcmToken;
+        if (FirebaseService.isInitialized) {
+          fcmToken = await FirebaseMessaging.instance.getToken();
+        }
+        await PatientApiClient().syncFirebaseUser({
+          'uid': authUser.uid,
+          'email': authUser.email,
+          'display_name': authUser.displayName,
+          'fcm_token': fcmToken,
+        });
+      } catch (e) {
+        developer.log('Failed to sync with backend: $e', name: 'AuthRepository');
+      }
+
+      _currentUser = authUser;
+      await storageService.saveAuthUser(authUser);
+      _authController.add(authUser);
+      return authUser;
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return null;
+      throw AuthException('Apple sign-in failed. Please try again.');
+    } on fb_auth.FirebaseAuthException catch (e) {
+      throw AuthException(e.message ?? 'Apple sign-in failed.', code: e.code);
+    }
+  }
+
+  static String _generateNonce([int length = 32]) {
+    const chars =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
+    final rnd = Random.secure();
+    return List.generate(length, (_) => chars[rnd.nextInt(chars.length)]).join();
+  }
+
+  @override
+  Future<bool> deleteAccount() async {
+    // Server first (needs a valid ID token), then local Firebase user.
+    final ok = await PatientApiClient().deleteAccount();
+    if (!ok) return false;
+    try {
+      await _firebaseAuth?.currentUser?.delete();
+    } catch (e) {
+      developer.log('Firebase user delete: $e', name: 'AuthRepository');
+    }
+    await signOut();
+    return true;
   }
 
   @override
