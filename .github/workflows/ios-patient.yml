@@ -103,7 +103,7 @@ jobs:
   simulator:
     name: Run app on iPhone simulator and capture screenshots
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     defaults:
       run:
@@ -146,10 +146,15 @@ jobs:
       - name: Install and launch app
         run: |
           set -euo pipefail
+          mkdir -p ../../screenshots
           xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          # Record the app's own log, so startup problems show up even when a
+          # screenshot looks fine (or blank).
+          xcrun simctl spawn "$UDID" log stream --level debug --style compact \
+            --predicate 'process == "Runner"' > ../../screenshots/iphone-app.log 2>&1 &
+          sleep 2
           xcrun simctl launch "$UDID" com.wadgaonkareyehospital.wadgaonkarEyeHospital
           sleep 20
-          mkdir -p ../../screenshots
           xcrun simctl io "$UDID" screenshot ../../screenshots/01-launch.png
 
       - name: Dismiss notification prompt and capture login screen
@@ -178,6 +183,56 @@ jobs:
             echo "App is running."
           else
             echo "::error::App is not running - it crashed on launch"
+            exit 1
+          fi
+
+      - name: Check Firebase started on iPhone (startup log)
+        run: |
+          set -euo pipefail
+          LOG=../../screenshots/iphone-app.log
+          if grep -q "\[startup\] Firebase NOT initialized" "$LOG"; then
+            echo "::error::Firebase failed to initialize on iOS"
+            grep "\[startup\]" "$LOG" | head -5
+            exit 1
+          fi
+          if grep -q "\[startup\] Firebase initialized" "$LOG"; then
+            echo "Firebase initialized on iOS."
+          else
+            echo "::warning::No startup marker found in the log (the log capture may not include Dart prints)."
+            tail -20 "$LOG" || true
+          fi
+
+      # App Review runs iPhone-only apps on iPad too (the rejected build was
+      # reviewed on an iPad Air), so launch there as well.
+      - name: Launch on iPad simulator
+        run: |
+          set -euo pipefail
+          IPAD=$(xcrun simctl list devices available -j | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)['devices']
+          c=[x for rt,devs in d.items() if 'iOS' in rt for x in devs if x['name'].startswith('iPad') and x['isAvailable']]
+          c.sort(key=lambda x: 0 if 'Air' in x['name'] else 1)
+          print(c[0]['udid'] if c else '')
+          ")
+          [ -n "$IPAD" ] || { echo "::error::No iPad simulator available"; exit 1; }
+          xcrun simctl shutdown "$UDID" || true
+          xcrun simctl boot "$IPAD"
+          xcrun simctl bootstatus "$IPAD" -b
+          xcrun simctl install "$IPAD" build/ios/iphonesimulator/Runner.app
+          xcrun simctl spawn "$IPAD" log stream --level debug --style compact \
+            --predicate 'process == "Runner"' > ../../screenshots/ipad-app.log 2>&1 &
+          sleep 2
+          xcrun simctl launch "$IPAD" com.wadgaonkareyehospital.wadgaonkarEyeHospital
+          sleep 25
+          xcrun simctl io "$IPAD" screenshot ../../screenshots/04-ipad-launch.png
+          if xcrun simctl spawn "$IPAD" launchctl list | grep -q com.wadgaonkareyehospital; then
+            echo "App is running on iPad."
+          else
+            echo "::error::App is not running on iPad - it crashed on launch"
+            exit 1
+          fi
+          if grep -q "\[startup\] Firebase NOT initialized" ../../screenshots/ipad-app.log; then
+            echo "::error::Firebase failed to initialize on iPad"
             exit 1
           fi
 
