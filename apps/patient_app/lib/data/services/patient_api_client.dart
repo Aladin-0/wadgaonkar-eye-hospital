@@ -36,6 +36,18 @@ class PatientApiClient {
     }
   }
 
+  /// Permanently deletes the signed-in patient's account on the server.
+  Future<bool> deleteAccount() async {
+    try {
+      final token = await _token();
+      if (token == null) return false;
+      final response = await dio.post('/auth/delete-account/', options: _auth(token));
+      return response.statusCode == 200;
+    } on DioException {
+      return false;
+    }
+  }
+
   Future<List<dynamic>> getDoctors() async {
     try {
       final response = await dio.get('/doctors/');

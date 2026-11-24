@@ -43,7 +43,7 @@ class BookingProvider extends ChangeNotifier {
 
   // Slot cache: key = "doctorId_YYYY-MM-DD_serviceId"
   final Map<String, List<TimeSlot>> _slotCache = {};
-  bool _isSlotsLoading = false;
+  final bool _isSlotsLoading = false;
   bool get isSlotsLoading => _isSlotsLoading;
 
   Doctor? get selectedDoctor => _selectedDoctor;
@@ -189,7 +189,7 @@ class BookingProvider extends ChangeNotifier {
               serviceId: _selectedService?.id,
             )
             .then((slots) => _slotCache[cacheKey] = slots)
-            .catchError((_) {});
+            .catchError((_) => <TimeSlot>[]);
       }
     }
   }

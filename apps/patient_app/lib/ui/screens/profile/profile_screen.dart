@@ -192,6 +192,38 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    final confirmed = await UiHelpers.showConfirmDialog(
+      context,
+      title: 'Delete Account',
+      message: 'This permanently deletes your account and personal details. '
+          'Appointment and payment records are kept in anonymised form as '
+          'required by law. This cannot be undone.',
+      confirmText: 'Delete',
+      isDestructive: true,
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final authProvider = context.read<AuthProvider>();
+    final profileProvider = context.read<ProfileProvider>();
+    final ok = await authProvider.deleteAccount();
+    if (!context.mounted) return;
+
+    if (ok) {
+      profileProvider.clearProfile();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } else {
+      UiHelpers.showSnackBar(
+        context,
+        message: 'Could not delete your account. Check your connection and try again.',
+        isError: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileProvider = context.watch<ProfileProvider>();
@@ -448,6 +480,18 @@ class ProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded,
                     color: AppColors.error, size: 20),
                 onPressed: () => _handleLogout(context),
+              ),
+
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => _handleDeleteAccount(context),
+                child: Text(
+                  'Delete Account',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
 
               const SizedBox(height: 32),

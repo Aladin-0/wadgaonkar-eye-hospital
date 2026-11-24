@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:weh_shared/weh_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,14 +39,20 @@ Future<void> main() async {
     ),
   );
 
-  // Initialize Firebase safely
+  // Initialize Firebase safely (never throws; see FirebaseService.initialize)
   await FirebaseService.initialize();
 
   // Initialize Local Storage Service
   final storageService = await StorageService.init();
 
-  // Initialize Local Notification Service
-  await LocalNotificationService().init();
+  // Initialize Local Notification Service. A failure here must not stop the
+  // app from starting: nothing may throw before runApp(), or the user is left
+  // on a blank launch screen.
+  try {
+    await LocalNotificationService().init();
+  } catch (e) {
+    debugPrint('[startup] Local notifications init failed: $e');
+  }
 
   // Instantiate Repositories & Services
   final patientApiClient = PatientApiClient();
@@ -87,6 +95,10 @@ Future<void> main() async {
   );
 
   runApp(app);
+
+  // iOS: show the notification prompt and fetch the push token only after the
+  // first screen is visible. (On Android this already happened in initialize().)
+  unawaited(FirebaseService.setupMessagingAfterFirstFrame());
 }
 
 class WadgaonkarEyeHospitalApp extends StatelessWidget {

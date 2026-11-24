@@ -1,7 +1,6 @@
 import 'package:weh_shared/weh_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/utils/ui_helpers.dart';
 
 /// 24/7 Eye Trauma & Emergency assistance banner with quick contact action
 class EmergencyBanner extends StatelessWidget {

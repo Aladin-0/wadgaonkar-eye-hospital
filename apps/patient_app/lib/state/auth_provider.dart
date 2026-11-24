@@ -100,6 +100,35 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Initiates Sign in with Apple (iOS)
+  Future<bool> signInWithApple() async {
+    _status = AuthStatus.authenticating;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final user = await authRepository.signInWithApple();
+      if (user == null) {
+        _status = _user != null ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+        notifyListeners();
+        return false;
+      }
+      _user = user;
+      _status = AuthStatus.authenticated;
+      notifyListeners();
+      return true;
+    } on AuthException catch (e) {
+      _status = AuthStatus.error;
+      _errorMessage = e.message;
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _status = AuthStatus.error;
+      _errorMessage = 'An unexpected error occurred. Please try again.';
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Signs out the user and clears state
   Future<void> signOut() async {
     _status = AuthStatus.authenticating;
@@ -113,6 +142,18 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
     }
+  }
+
+  /// Permanently deletes the account. Returns true on success.
+  Future<bool> deleteAccount() async {
+    final ok = await authRepository.deleteAccount();
+    if (ok) {
+      _user = null;
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = null;
+      notifyListeners();
+    }
+    return ok;
   }
 
   void clearError() {

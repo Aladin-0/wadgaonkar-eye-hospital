@@ -32,6 +32,15 @@ class MockAuthRepository implements IAuthRepository {
   }
 
   @override
+  Future<AuthUser?> signInWithApple() async => signInWithGoogle();
+
+  @override
+  Future<bool> deleteAccount() async {
+    _user = null;
+    return true;
+  }
+
+  @override
   Future<void> signOut() async {
     _user = null;
   }

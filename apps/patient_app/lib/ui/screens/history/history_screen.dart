@@ -51,6 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
     }
   }
 
+  // ignore: unused_element
   void _showCancelDialog(Appointment appt) {
     final reasonController = TextEditingController();
     showDialog(

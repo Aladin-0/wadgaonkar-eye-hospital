@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from .models import PatientProfile
 from .serializers import PatientProfileSerializer, FirebaseSyncSerializer
+from django.db import transaction
 
 class FirebaseSyncView(APIView):
     """
@@ -106,3 +107,53 @@ class PatientProfileViewSet(ModelViewSet):
             'success': True,
             'data': self.get_serializer(instance).data
         })
+
+
+class DeleteAccountView(APIView):
+    """
+    Permanently deletes the calling patient's account (App Store 5.1.1(v)).
+
+    The caller must present a valid Firebase ID token. Personal identifiers are
+    erased from the profile; appointment and payment rows are anonymised (not
+    removed) because Indian medical/financial record-retention rules apply.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get_authenticators(self):
+        return []
+
+    def post(self, request):
+        from apps.appointments.models import Appointment
+        from apps.payments.models import PaymentOrder
+        import firebase_admin.auth as fb_auth
+
+        header = request.headers.get('Authorization', '')
+        if not header.startswith('Bearer ') or len(header) <= 7:
+            return Response({'detail': 'Authentication required.'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            uid = fb_auth.verify_id_token(header[7:]).get('uid')
+        except Exception:
+            return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not uid:
+            return Response({'detail': 'Invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        with transaction.atomic():
+            appt_ids = list(Appointment.objects.filter(patient_uid=uid).values_list('id', flat=True))
+            Appointment.objects.filter(patient_uid=uid).update(
+                patient_name='Deleted User',
+                patient_mobile='',
+                patient_gender=None,
+                patient_uid=f'deleted-{uid[:8]}',
+            )
+            PaymentOrder.objects.filter(appointment_id__in=appt_ids).update(
+                patient_name='Deleted User', patient_mobile='', patient_email=None,
+            )
+            PatientProfile.objects.filter(uid=uid).delete()
+            User.objects.filter(username=uid, is_staff=False, is_superuser=False).delete()
+
+        try:
+            fb_auth.delete_user(uid)
+        except Exception:
+            pass  # already removed client-side or not found
+
+        return Response({'success': True}, status=status.HTTP_200_OK)

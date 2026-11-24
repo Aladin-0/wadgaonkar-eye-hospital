@@ -17,11 +17,14 @@ class LocalNotificationService {
     tz.initializeTimeZones();
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    // Using default iOS settings
+    // iOS: do NOT ask for permission here. init() runs before the first
+    // screen is drawn, and waiting on the system prompt would leave the
+    // screen blank. FirebaseService.setupMessagingAfterFirstFrame() asks for
+    // the (same, app-wide) notification permission once the UI is visible.
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
     const linuxSettings = LinuxInitializationSettings(
       defaultActionName: 'Open notification',

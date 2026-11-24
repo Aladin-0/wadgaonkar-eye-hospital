@@ -200,9 +200,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Booking Confirmed!'), findsOneWidget);
-    expect(find.text('APPOINTMENT CODE'), findsOneWidget);
     expect(find.text(appt.appointmentCode), findsOneWidget);
-    expect(find.text('Scan at OPD Reception Desk for Instant Token Verification'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
   });
 }

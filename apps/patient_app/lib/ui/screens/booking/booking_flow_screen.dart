@@ -152,7 +152,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 32),
@@ -700,11 +700,11 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                     color: isSelected ? const Color(0xFF0B2447) : Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: isSelected ? const Color(0xFF0B2447) : AppColors.border.withOpacity(0.5),
+                      color: isSelected ? const Color(0xFF0B2447) : AppColors.border.withValues(alpha: 0.5),
                       width: 1.5,
                     ),
                     boxShadow: isSelected
-                        ? [BoxShadow(color: const Color(0xFF0B2447).withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))]
+                        ? [BoxShadow(color: const Color(0xFF0B2447).withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))]
                         : [],
                   ),
                   child: Column(
@@ -800,14 +800,14 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, spreadRadius: 5)
+              BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 5)
             ]),
             child: const Icon(Icons.event_busy_rounded, color: AppColors.textSecondary, size: 36),
           ),
@@ -841,7 +841,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF0B2447),
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: const Color(0xFF0B2447).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: const Color(0xFF0B2447).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
                   ),
                   child: Icon(icon, color: const Color(0xFF00B4D8), size: 14),
                 ),
@@ -884,14 +884,14 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                           curve: Curves.easeOut,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF00B4D8) : (isSelectable ? Colors.white : AppColors.surfaceSubtle.withOpacity(0.3)),
+                            color: isSelected ? const Color(0xFF00B4D8) : (isSelectable ? Colors.white : AppColors.surfaceSubtle.withValues(alpha: 0.3)),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF00B4D8) : (isSelectable ? AppColors.border : AppColors.border.withOpacity(0.2)),
+                              color: isSelected ? const Color(0xFF00B4D8) : (isSelectable ? AppColors.border : AppColors.border.withValues(alpha: 0.2)),
                               width: isSelected ? 2 : 1,
                             ),
                             boxShadow: isSelected
-                                ? [BoxShadow(color: const Color(0xFF00B4D8).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]
+                                ? [BoxShadow(color: const Color(0xFF00B4D8).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]
                                 : [],
                           ),
                           child: Column(
@@ -900,7 +900,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                               Text(
                                 slot.displayTime,
                                 style: TextStyle(
-                                  color: isSelected ? Colors.white : (isSelectable ? AppColors.textPrimary : AppColors.textSecondary.withOpacity(0.4)),
+                                  color: isSelected ? Colors.white : (isSelectable ? AppColors.textPrimary : AppColors.textSecondary.withValues(alpha: 0.4)),
                                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
                                   fontSize: 13,
                                   letterSpacing: 0.5,
@@ -912,7 +912,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                                 Text(
                                   slot.unavailabilityReason!.toUpperCase(),
                                   style: TextStyle(
-                                    color: slot.unavailabilityReason == 'Break' ? Colors.orange.withOpacity(0.8) : AppColors.textSecondary.withOpacity(0.5),
+                                    color: slot.unavailabilityReason == 'Break' ? Colors.orange.withValues(alpha: 0.8) : AppColors.textSecondary.withValues(alpha: 0.5),
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.0,

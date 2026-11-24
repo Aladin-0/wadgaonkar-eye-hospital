@@ -27,7 +27,12 @@ class FirebaseService {
   static final StreamController<bool> onCancellationNotification =
       StreamController<bool>.broadcast();
 
-  /// Safe initialization.
+  /// Safe initialization. Never throws.
+  ///
+  /// This runs in main() before runApp(). Throwing here (as it used to in
+  /// release mode) leaves the user on a blank launch screen forever, so a
+  /// Firebase problem is logged and the app still starts; sign-in then shows
+  /// an error instead.
   static Future<void> initialize() async {
     try {
       if (kIsWeb) {
@@ -37,19 +42,31 @@ class FirebaseService {
 
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
-      );
+      ).timeout(const Duration(seconds: 15));
       _isInitialized = true;
+      debugPrint('[startup] Firebase initialized');
       developer.log('Firebase initialized successfully', name: 'FirebaseService');
 
-      await _setupMessaging();
+      // iOS: the notification prompt and the push-token fetch must not delay
+      // the first screen, so main() calls setupMessagingAfterFirstFrame()
+      // after runApp(). Android keeps its existing behaviour.
+      if (defaultTargetPlatform != TargetPlatform.iOS) {
+        await _setupMessaging();
+      }
     } catch (e, stack) {
       _isInitialized = false;
-      if (kReleaseMode) {
-        throw Exception('CRITICAL: Firebase initialization failed in release mode: $e');
-      } else {
-        developer.log('Firebase not initialized: $e', name: 'FirebaseService', error: e, stackTrace: stack);
-      }
+      debugPrint('[startup] Firebase NOT initialized: $e');
+      developer.log('Firebase not initialized: $e', name: 'FirebaseService', error: e, stackTrace: stack);
     }
+  }
+
+  /// iOS only: asks for notification permission and sets up push messaging
+  /// once the UI is already visible. Does nothing on other platforms, where
+  /// [initialize] has already done it.
+  static Future<void> setupMessagingAfterFirstFrame() async {
+    if (kIsWeb || !_isInitialized) return;
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    await _setupMessaging();
   }
 
   static Future<void> _setupMessaging() async {
@@ -77,13 +94,14 @@ class FirebaseService {
 
       // App KILLED — user taps notification → app launches fresh
       // SplashScreen → MainShellScreen, which reads pendingCancellationRefresh
-      final initialMessage = await messaging.getInitialMessage();
+      final initialMessage = await messaging.getInitialMessage().timeout(const Duration(seconds: 10));
       if (initialMessage != null) {
         developer.log('App launched from notification tap — setting pending refresh', name: 'FirebaseService');
         pendingCancellationRefresh = true;
       }
 
-      final token = await messaging.getToken();
+      // Bounded wait: a slow or unavailable push service must not hang startup.
+      final token = await messaging.getToken().timeout(const Duration(seconds: 20));
       developer.log('FCM token: $token', name: 'FirebaseService');
     } catch (e) {
       developer.log('FCM setup error: $e', name: 'FirebaseService');

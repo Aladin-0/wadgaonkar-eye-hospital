@@ -1,7 +1,6 @@
 import 'package:weh_shared/weh_shared.dart';
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../core/errors/app_exception.dart';
 
 import '../services/firebase_service.dart';
 import '../services/storage_service.dart';

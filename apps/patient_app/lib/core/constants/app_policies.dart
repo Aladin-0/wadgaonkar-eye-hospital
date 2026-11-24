@@ -2,50 +2,79 @@ class AppPolicies {
   static const String privacyPolicy = '''
 # Privacy Policy
 
-**Last Updated:** September 3, 2026
+**Last Updated:** November 3, 2026
 
-Welcome to the Wadgaonkar Eye Hospital Patient Application ("App"). This Privacy Policy explains how Wadgaonkar Eye Hospital ("we", "us", or "our") collects, uses, shares, and protects your personal and sensitive information when you use our App and services. 
+This Privacy Policy explains how Wadgaonkar Eye Hospital ("we", "us", "our"), Chhatrapati Sambhajinagar, Maharashtra, India, collects, uses, stores, shares and protects your personal data when you use the Wadgaonkar Eye Hospital Patient App ("App") on Android and iOS. We act as the "Data Fiduciary" under India's Digital Personal Data Protection Act, 2023 ("DPDP Act") and follow the data-handling requirements of the Google Play Store and the Apple App Store.
 
-We are committed to protecting your privacy and ensuring compliance with the Digital Personal Data Protection (DPDP) Act of India and the guidelines set forth by the Google Play Store.
+By creating an account and using the App you consent to the processing described below. You can withdraw consent at any time by deleting your account (see Section 7).
 
 ## 1. Information We Collect
-To provide you with our medical scheduling and consultation services, we may collect the following types of information:
-* **Personal Information:** Name, age, gender, and contact details (mobile number, email address) provided during registration.
-* **Authentication Data:** We use Firebase Authentication and Google Sign-In to securely verify your identity.
-* **Health Information:** Information regarding your appointments, selected services (e.g., eye checkup), and past booking history to determine discount eligibility (e.g., 30-Day Follow-Up).
-* **Device Information:** Basic device identifiers necessary for crash reporting and sending appointment reminder push notifications.
+* **Account details:** name, email address and profile photo received from Google Sign-In or Sign in with Apple. If you choose "Hide My Email" with Apple, we receive only Apple's private relay address.
+* **Profile details you enter:** mobile number, age, gender, and optionally city, address and blood group.
+* **Appointment and health-related information:** the doctor and service you book, appointment date and time, status (booked, completed, cancelled), and booking history used to apply follow-up discounts.
+* **Payment information:** order and transaction identifiers and payment status. Card, UPI and bank details are entered directly with Razorpay; we never see or store them.
+* **Device and notification data:** a Firebase Cloud Messaging token used only to send appointment reminders and updates.
 
-## 2. How We Use Your Information
-Your data is strictly used for the following purposes:
-* To schedule, manage, and track your OPD (Outpatient Department) appointments.
-* To process pre-paid online payments securely via the Razorpay Payment Gateway.
-* To send you automated reminders (via push notifications) 15 minutes prior to your scheduled slot.
-* To calculate and apply appropriate patient discounts automatically.
-* To maintain a digital medical record of your visits at Wadgaonkar Eye Hospital.
+We do not collect your precise location, contacts, photos, microphone or camera data, and we do not use advertising identifiers or third-party advertising or analytics trackers.
 
-## 3. How We Share Your Information
-We **do not** sell, rent, or trade your personal or health data to any third parties for marketing or advertising purposes. Your information is only shared with:
-* **Payment Gateway (Razorpay):** To securely process your digital payments. We do not store your UPI PIN or banking passwords.
-* **Backend Infrastructure (Firebase & Hosted Servers):** For secure database storage and user authentication.
-* **Legal Authorities:** Only if strictly required by Indian law or a valid court order.
+## 2. Why We Use Your Information
+* To create your account and verify your identity.
+* To book, reschedule, cancel and manage your OPD appointments.
+* To process pre-paid consultation fees and issue receipts.
+* To send appointment reminders and hospital-initiated schedule changes by push notification.
+* To maintain your visit record at the hospital and apply eligible discounts.
+* To prevent fraud and misuse, and to meet legal obligations.
+
+We do not use your data for advertising, profiling or sale.
+
+## 3. Who We Share Data With
+We do not sell or rent your personal data. We share it only with service providers that process it on our behalf:
+* **Google Firebase (Authentication, Cloud Messaging, Firestore):** sign-in, push notifications and app data storage.
+* **Google Sign-In and Apple Sign-In:** to verify your identity when you choose those options.
+* **Razorpay:** to process online payments.
+* **Our hosting provider:** our appointment server runs on a secured hosted server in India.
+* **Authorities:** only where required by Indian law, a court order or to protect life.
+
+Some providers, such as Google, may process data on servers outside India. They are bound by their own security and privacy commitments.
 
 ## 4. Data Security
-We implement robust security measures, including HTTPS encryption and secure token-based API authentication, to protect your data against unauthorized access, alteration, or destruction. 
+Data is encrypted in transit using HTTPS. API access uses token-based authentication, and access to patient records inside the hospital is limited to authorised staff. No system is perfectly secure, but we take reasonable safeguards and will notify you and the Data Protection Board of India if a personal data breach affects you, as required by law.
 
-## 5. Account and Data Deletion
-You have the right to request the deletion of your account and associated personal data. To do so, please contact our support team using the details provided below. Upon verification, your digital account will be deleted, subject to medical record retention laws mandated by the Government of India.
+## 5. How Long We Keep Data
+* Account and profile details are kept while your account is active and are erased when you delete your account.
+* Appointment and payment records are retained in **anonymised form** (your name, mobile number and identifiers removed) for the period required by Indian medical and tax record-keeping rules.
+* Medical records created by the hospital during in-person treatment are kept as required under applicable medical regulations.
 
-## 6. Contact Us
-If you have any questions or concerns regarding this Privacy Policy or your data, please contact us at:
+## 6. Your Rights
+Under the DPDP Act you may:
+* Access a summary of the personal data we hold about you.
+* Correct or update inaccurate data (use Edit Profile in the App).
+* Erase your data and withdraw consent.
+* Nominate another person to exercise your rights if you die or become incapacitated.
+* Raise a grievance with us and, if unresolved, complain to the Data Protection Board of India.
+
+## 7. Delete Your Account
+You can permanently delete your account inside the App: **Profile > Delete Account**. This removes your profile and sign-in identity and anonymises your appointment and payment records as described in Section 5. You can also request deletion by emailing us from your registered email address or by visiting the Delete Account page on our website. We act on verified requests within 30 days.
+
+## 8. Children
+The App is intended for adults. A parent or legal guardian may book appointments for a child using their own account. We do not knowingly create accounts for persons under 18 without verifiable guardian consent.
+
+## 9. Changes to This Policy
+We may update this policy. The "Last Updated" date shows the latest version, and we will notify you in the App for material changes.
+
+## 10. Grievance Officer and Contact
+**Grievance Officer:** Administrator, Wadgaonkar Eye Hospital
 * **Email:** wadgaonkareyeehospital@gmail.com
 * **Phone:** 02402324219
 * **Address:** 126, Madhushri, Varad Ganesh Mandir Rd, Samarth Nagar, Chhatrapati Sambhajinagar, Maharashtra 431001
+
+We aim to acknowledge grievances within 48 hours and resolve them within 30 days.
 ''';
 
   static const String termsAndConditions = '''
 # Terms and Conditions
 
-**Last Updated:** September 3, 2026
+**Last Updated:** November 3, 2026
 
 Welcome to the Wadgaonkar Eye Hospital App. By downloading, accessing, or using this application, you agree to be bound by the following Terms and Conditions. Please read them carefully.
 
@@ -60,7 +89,7 @@ Wadgaonkar Eye Hospital provides this digital platform for patients to:
 
 ## 2. User Accounts
 * You must provide accurate and complete information (Name, Age, Phone Number) during registration.
-* You are responsible for maintaining the confidentiality of your login credentials (via Google Sign-In or Mobile OTP).
+* You are responsible for maintaining the confidentiality of your login credentials (via Google Sign-In or Sign in with Apple).
 
 ## 3. Payments and Billing
 * All consultation fees must be pre-paid through the App using our integrated payment gateway (Razorpay).
@@ -86,7 +115,7 @@ For any legal or technical inquiries, please contact:
   static const String cancellationPolicy = '''
 # Cancellation & Rescheduling Policy
 
-**Last Updated:** September 3, 2026
+**Last Updated:** November 3, 2026
 
 At Wadgaonkar Eye Hospital, we value both your time and the time of our specialist consultants. To ensure smooth operations and availability for all patients, we enforce the following Cancellation and Rescheduling Policy for all OPD appointments booked through the App.
 
@@ -118,7 +147,7 @@ If you face any technical difficulties while attempting to reschedule your appoi
   static const String contactUs = '''
 # Contact Us
 
-**Last Updated:** September 3, 2026
+**Last Updated:** November 3, 2026
 
 Wadgaonkar Eye Hospital is dedicated to providing you with the best optical and medical care. If you have any questions about your appointments, app usage, billing, or general inquiries, our dedicated support team is always here to assist you.
 

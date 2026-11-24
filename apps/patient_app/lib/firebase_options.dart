@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -58,5 +55,16 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1003169726058',
     projectId: 'wadgaonkar-eye-hospital',
     storageBucket: 'wadgaonkar-eye-hospital.firebasestorage.app',
+  );
+
+  /// Values copied from ios/Runner/GoogleService-Info.plist.
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCYqfHsvDPPh5zb__0YrhTCBP_J5JzeCo0',
+    appId: '1:1003169726058:ios:01a39ad9694c64ca7a1413',
+    messagingSenderId: '1003169726058',
+    projectId: 'wadgaonkar-eye-hospital',
+    storageBucket: 'wadgaonkar-eye-hospital.firebasestorage.app',
+    iosClientId: '1003169726058-4g4rsfd306risnpo7vos66v9dfeeeser.apps.googleusercontent.com',
+    iosBundleId: 'com.wadgaonkareyehospital.wadgaonkarEyeHospital',
   );
 }
